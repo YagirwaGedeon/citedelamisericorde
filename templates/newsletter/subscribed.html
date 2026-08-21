@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load icons %}
+
+{% block title %}Inscription newsletter — {{ site_settings.organization_name }}{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-xl px-4 py-24 text-center sm:px-6">
+  <div class="animate-fade-up">
+    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 text-brand-700 ring-8 ring-brand-50/50">{% icon "mail" size=28 %}</div>
+    <h1 class="mt-6 font-display text-2xl font-extrabold tracking-tight text-ink-900">Merci pour votre inscription !</h1>
+    <p class="mx-auto mt-4 max-w-md text-ink-500">
+      Un email de confirmation vient d'être envoyé à <strong class="text-ink-800">{{ email }}</strong>.
+      Cliquez sur le lien qu'il contient pour valider votre inscription.
+    </p>
+    <a href="{% url 'home' %}" class="btn btn-primary mt-8">Retour à l'accueil</a>
+  </div>
+</section>
+{% endblock %}

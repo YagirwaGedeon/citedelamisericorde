@@ -1,0 +1,51 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}Connexion — Cité de la Miséricorde{% endblock %}
+
+{% block bodyclass %}adm-login-body{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div class="adm-login-card">
+  <div class="adm-login-head">
+    <img src="{% static 'img/logo.png' %}" alt="Logo {{ site_settings.organization_name|default:'Cité de la Miséricorde' }}" class="adm-login-logo">
+    <h1>Connexion à l'administration</h1>
+    <p>Cité de la Miséricorde — Espace réservé</p>
+  </div>
+
+  {% if form.errors and not form.non_field_errors %}
+  <div class="adm-login-err" role="alert">
+    {% if form.errors.items|length == 1 %}Veuillez corriger l'erreur ci-dessous.{% else %}Veuillez corriger les erreurs ci-dessous.{% endif %}
+  </div>
+  {% endif %}
+  {% if form.non_field_errors %}
+  <div class="adm-login-err" role="alert">
+    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+  </div>
+  {% endif %}
+
+  <form class="adm-login-form" action="{{ app_path }}" method="post" id="login-form">
+    {% csrf_token %}
+    <div class="form-row">
+      {{ form.username.errors }}
+      <label for="id_username" class="required">Identifiant</label>
+      <input type="text" name="username" id="id_username" autofocus autocapitalize="none" autocomplete="username" maxlength="150" required placeholder="Votre identifiant">
+    </div>
+    <div class="form-row">
+      {{ form.password.errors }}
+      <label for="id_password" class="required">Mot de passe</label>
+      <input type="password" name="password" id="id_password" autocomplete="current-password" required placeholder="Votre mot de passe">
+      <input type="hidden" name="next" value="{{ next }}">
+    </div>
+    <button type="submit" class="adm-login-submit">Se connecter</button>
+  </form>
+
+  <div class="adm-login-foot">
+    <a href="{% url 'admin:password_reset' %}">Mot de passe oublié ?</a>
+    <span class="adm-login-sep" aria-hidden="true">·</span>
+    <a href="{% url 'home' %}">← Retour au site public</a>
+  </div>
+</div>
+{% endblock %}

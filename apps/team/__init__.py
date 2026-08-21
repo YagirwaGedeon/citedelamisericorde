@@ -1,0 +1,1 @@
+"""Équipe dirigeante de la Cité de la Miséricorde."""

@@ -1,0 +1,69 @@
+# Traduction anglaise — Cité de la Miséricorde
+msgid ""
+msgstr ""
+"Project-Id-Version: citedelamisericorde 1.0\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Accueil"
+msgstr "Home"
+
+msgid "À propos"
+msgstr "About"
+
+msgid "À propos de nous"
+msgstr "About us"
+
+msgid "Notre histoire"
+msgstr "Our story"
+
+msgid "Notre mission"
+msgstr "Our mission"
+
+msgid "Notre vision"
+msgstr "Our vision"
+
+msgid "Nos valeurs"
+msgstr "Our values"
+
+msgid "Notre équipe"
+msgstr "Our team"
+
+msgid "Nos actions"
+msgstr "Our actions"
+
+msgid "Nos programmes"
+msgstr "Our programs"
+
+msgid "Nos projets"
+msgstr "Our projects"
+
+msgid "Notre impact"
+msgstr "Our impact"
+
+msgid "Galerie"
+msgstr "Gallery"
+
+msgid "Partenaires"
+msgstr "Partners"
+
+msgid "Actualités"
+msgstr "News"
+
+msgid "Contact"
+msgstr "Contact"
+
+msgid "Faire un don"
+msgstr "Make a donation"
+
+msgid "Bukavu & Goma — RDC"
+msgstr "Bukavu & Goma — DRC"
+
+msgid "Choisir la langue"
+msgstr "Choose a language"
+
+msgid "Ouvrir le menu"
+msgstr "Open menu"

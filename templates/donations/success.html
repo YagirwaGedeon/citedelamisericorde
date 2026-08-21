@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load icons %}
+
+{% block title %}Don confirmé — {{ site_settings.organization_name }}{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
+  <div class="animate-fade-up">
+    <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-green-600 ring-8 ring-green-50">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-9 w-9"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+    </div>
+    <h1 class="mt-8 font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">Merci pour votre don !</h1>
+    <p class="mx-auto mt-4 max-w-md text-lg text-ink-500">
+      Votre don de <strong class="text-brand-700">{{ donation.amount }} {{ donation.currency }}</strong> a bien été enregistré.
+      Grâce à vous, des vies changent à Bukavu et Goma.
+    </p>
+
+    <div class="mx-auto mt-10 max-w-md rounded-2xl border border-ink-200 bg-white p-7 text-left text-sm shadow-soft">
+      <p class="font-display text-sm font-bold uppercase tracking-wider text-ink-900">Récapitulatif</p>
+      <dl class="mt-4 space-y-2.5">
+        <div class="flex justify-between"><dt class="text-ink-500">Référence</dt><dd class="font-mono font-semibold text-ink-900">{{ donation.reference }}</dd></div>
+        <div class="flex justify-between"><dt class="text-ink-500">Montant</dt><dd class="font-semibold text-ink-900">{{ donation.amount }} {{ donation.currency }}</dd></div>
+        <div class="flex justify-between"><dt class="text-ink-500">Statut</dt><dd><span class="badge badge-green">Confirmé</span></dd></div>
+        {% if donation.project %}<div class="flex justify-between"><dt class="text-ink-500">Projet</dt><dd class="font-semibold text-brand-700">{{ donation.project.title }}</dd></div>{% endif %}
+      </dl>
+      {% if donation.donor.email %}
+      <p class="mt-5 border-t border-ink-100 pt-4 text-xs text-ink-500">
+        Votre reçu officiel (PDF) vous sera envoyé par email à <strong class="text-ink-700">{{ donation.donor.email }}</strong>, ainsi qu'un message de remerciement.
+      </p>
+      {% endif %}
+    </div>
+
+    <div class="mt-10 flex flex-wrap justify-center gap-3">
+      <a href="{% url 'home' %}" class="btn btn-primary">Retour à l'accueil</a>
+      <a href="{% url 'articles:list' %}" class="btn btn-outline">Voir nos actualités</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

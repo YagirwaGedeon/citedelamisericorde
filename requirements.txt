@@ -1,0 +1,35 @@
+# Django
+Django>=6.1,<7
+
+# Base de données
+psycopg[binary]>=3.2
+
+# Environnement
+python-dotenv>=1.0
+
+# Images
+pillow>=10.0
+
+# Utilitaires
+django-model-utils>=5.0
+django-filter>=24.0
+django-crispy-forms>=2.1
+crispy-tailwind>=1.0
+
+# Tâches asynchrones (emails, webhooks, rapports)
+celery>=5.4
+redis>=5.0
+
+# Paiements
+stripe>=10.0
+paypalrestsdk>=1.7
+
+# Analyse HTML (sanitization du contenu importé)
+bleach>=6.0
+
+# PDF (reçus de dons)
+reportlab>=4.0
+
+# Tests
+pytest>=8.0
+pytest-django>=4.8

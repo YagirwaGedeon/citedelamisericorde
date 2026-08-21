@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load icons %}
+
+{% block title %}Notre impact — {{ site_settings.organization_name }}{% endblock %}
+{% block meta_description %}Les indicateurs d'impact de la {{ site_settings.organization_name }} : enfants assistés, femmes accompagnées, résultats mesurés.{% endblock %}
+
+{% block content %}
+{% include "partials/page_hero.html" with page_title="Notre impact" page_subtitle="Des résultats concrets, mesurés sur le terrain et validés par notre équipe." %}
+
+<section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+  <div class="grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-ink-200 ring-1 ring-ink-200 lg:grid-cols-4">
+    {% for stat in statistics %}
+    <div class="reveal bg-white p-8 text-center sm:p-10">
+      <div class="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700">{% icon "trending-up" size=20 %}</div>
+      <p class="mt-4 font-display text-4xl font-extrabold tracking-tight text-brand-700 sm:text-5xl">{{ stat.prefix }}{{ stat.value }}{{ stat.suffix }}</p>
+      <p class="mt-3 text-sm font-medium leading-snug text-ink-500">{{ stat.label }}</p>
+    </div>
+    {% empty %}
+    <p class="col-span-full p-12 text-center text-ink-500">Les indicateurs seront publiés après validation.</p>
+    {% endfor %}
+  </div>
+  <p class="mt-6 text-center text-xs text-ink-400">Indicateurs publiés après validation humaine — mise à jour : 13 août 2026.</p>
+</section>
+
+{% if testimonials %}
+<section class="bg-ink-100/60 py-14">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="reveal mx-auto max-w-2xl text-center">
+      <p class="eyebrow justify-center">Témoignages</p>
+      <h2 class="section-title mt-3">Des vies changées</h2>
+    </div>
+    <div class="mt-12 grid gap-7 md:grid-cols-3">
+      {% for testimonial in testimonials %}
+      <figure class="card reveal relative p-8">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="absolute -top-4 left-8 h-9 w-9 rounded-full bg-brand-700 p-2 text-white shadow-lift"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+        <blockquote class="pt-2 text-[15px] leading-relaxed text-ink-600">« {{ testimonial.content|truncatewords:45 }} »</blockquote>
+        <figcaption class="mt-6 flex items-center gap-3 border-t border-ink-100 pt-5">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 font-display font-bold text-brand-700">{{ testimonial.author_name|default:"T"|first }}</div>
+          <div>
+            <p class="text-sm font-bold text-ink-900">{{ testimonial.author_name|default:"Témoignage" }}</p>
+            {% if testimonial.role_or_relation %}<p class="text-xs text-ink-500">{{ testimonial.role_or_relation }}</p>{% endif %}
+          </div>
+        </figcaption>
+      </figure>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

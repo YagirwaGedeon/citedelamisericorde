@@ -1,0 +1,14 @@
+{
+  "name": "citedelamisericorde-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Frontend Tailwind CSS — Cité de la Miséricorde",
+  "scripts": {
+    "build": "tailwindcss -i ./static/css/input.css -o ./static/css/main.css --minify",
+    "watch": "tailwindcss -i ./static/css/input.css -o ./static/css/main.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.0.0",
+    "tailwindcss": "^4.0.0"
+  }
+}

@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+{% load icons %}
+
+{% block title %}{{ site_settings.organization_name }} — {{ site_settings.tagline }}{% endblock %}
+
+{% block content %}
+{# ============ HERO ============ #}
+<section class="relative overflow-hidden bg-ink-950">
+  <div class="absolute inset-0">
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(20,184,166,0.28),transparent_55%),radial-gradient(ellipse_at_bottom_left,rgba(245,158,11,0.14),transparent_50%)]"></div>
+    <div class="absolute inset-0 opacity-[0.35]" style="background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 28px 28px;"></div>
+  </div>
+  <div class="relative mx-auto max-w-7xl px-4 pb-24 pt-20 sm:px-6 lg:px-8 lg:pb-32 lg:pt-28">
+    <div class="grid items-center gap-14 lg:grid-cols-[1.15fr_0.85fr]">
+      <div class="animate-fade-up">
+        <span class="badge badge-accent">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/></svg>
+          ASBL — Bukavu &amp; Goma, RD Congo
+        </span>
+        <h1 class="mt-6 max-w-2xl font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl">
+          La {{ site_settings.organization_name }}<br>
+          <span class="bg-gradient-to-r from-brand-300 via-brand-400 to-accent-400 bg-clip-text text-transparent">un abri pour chaque vie brisée</span>
+        </h1>
+        <p class="mt-6 max-w-xl text-lg leading-relaxed text-ink-300">{{ site_settings.tagline }}</p>
+        <div class="mt-9 flex flex-wrap gap-4">
+          <a href="{% url 'donations:create' %}" class="btn btn-accent btn-lg">
+            Faire un don
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+          <a href="{% url 'pages:mission' %}" class="btn btn-outline-light btn-lg">Découvrir notre mission</a>
+        </div>
+        <dl class="mt-12 grid max-w-lg grid-cols-3 gap-6 border-t border-white/10 pt-8">
+          {% for stat in impact_statistics %}
+          <div>
+            <dt class="text-xs uppercase tracking-wider text-ink-400">{{ stat.label }}</dt>
+            <dd class="mt-1 font-display text-2xl font-bold text-white sm:text-3xl">{{ stat.prefix }}{{ stat.value }}{{ stat.suffix }}</dd>
+          </div>
+          {% endfor %}
+        </dl>
+      </div>
+      <div class="relative hidden animate-fade-up lg:block" style="animation-delay: 0.15s">
+        {% if founder.image %}
+        <div class="relative">
+          <div class="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-brand-500/30 to-accent-400/20 blur-2xl"></div>
+          <img src="{{ founder.image }}" alt="Activités de la {{ site_settings.organization_name }}" class="relative h-[30rem] w-full rounded-3xl object-cover shadow-float ring-1 ring-white/15">
+          <div class="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/10 bg-ink-950/70 p-5 backdrop-blur-md">
+            <p class="font-display text-sm font-bold text-white">« {{ founder.excerpt|truncatewords:24 }} »</p>
+            <a href="{% url 'pages:history' %}" class="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-300 transition hover:text-brand-200">
+              Notre histoire
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="h-px w-full bg-gradient-to-r from-transparent via-brand-500/50 to-transparent"></div>
+</section>
+
+{# ============ PROGRAMMES ============ #}
+<section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+  <div class="flex flex-wrap items-end justify-between gap-6">
+    <div class="reveal max-w-2xl">
+      <p class="eyebrow">Nos domaines d'intervention</p>
+      <h2 class="section-title mt-3">Quatre pôles d'action au service des communautés</h2>
+    </div>
+    <a href="{% url 'programs:list' %}" class="btn btn-outline btn-sm reveal">Tous les programmes
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </a>
+  </div>
+  <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    {% for program in programs %}
+    <a href="{% url 'programs:detail' program.slug %}" class="card card-hover reveal group p-7">
+      <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-brand-100 transition group-hover:bg-brand-600 group-hover:text-white">
+        {% icon program.icon|default:"heart" size=22 %}
+      </div>
+      <h3 class="mt-5 font-display text-lg font-bold text-ink-900 transition group-hover:text-brand-700">{{ program.title }}</h3>
+      {% if program.short_description %}<p class="mt-2 text-sm leading-relaxed text-ink-500">{{ program.short_description }}</p>{% endif %}
+      <span class="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 opacity-0 transition group-hover:opacity-100">
+        En savoir plus
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </span>
+    </a>
+    {% empty %}
+    <p class="col-span-full text-ink-500">Les programmes seront publiés prochainement.</p>
+    {% endfor %}
+  </div>
+</section>
+
+{# ============ IMPACT ============ #}
+{% if impact_statistics %}
+<section class="relative overflow-hidden bg-brand-950">
+  <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(20,184,166,0.18),transparent_60%)]"></div>
+  <div class="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+    <div class="reveal mx-auto max-w-2xl text-center">
+      <p class="eyebrow justify-center">Notre impact</p>
+      <h2 class="section-title mt-3 text-white">Des résultats concrets, mesurés sur le terrain</h2>
+    </div>
+    <div class="mt-14 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/10 lg:grid-cols-4">
+      {% for stat in impact_statistics %}
+      <div class="reveal bg-brand-950/80 p-8 text-center backdrop-blur sm:p-10">
+        <p class="font-display text-4xl font-extrabold tracking-tight text-brand-300 sm:text-5xl" data-count="{{ stat.value }}">{{ stat.prefix }}{{ stat.value }}{{ stat.suffix }}</p>
+        <p class="mt-3 text-sm font-medium leading-snug text-ink-300">{{ stat.label }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="reveal mt-8 text-center text-xs text-ink-400">Indicateurs publiés après validation humaine par l'organisation — mise à jour : 13 août 2026.</p>
+  </div>
+</section>
+{% endif %}
+
+{# ============ PROJETS ============ #}
+<section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+  <div class="flex flex-wrap items-end justify-between gap-6">
+    <div class="reveal max-w-2xl">
+      <p class="eyebrow">Nos projets</p>
+      <h2 class="section-title mt-3">Des actions qui transforment durablement</h2>
+    </div>
+    <a href="{% url 'projects:list' %}" class="btn btn-outline btn-sm reveal">Tous les projets
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </a>
+  </div>
+  <div class="mt-12 grid gap-7 md:grid-cols-3">
+    {% for project in featured_projects %}
+    <a href="{% url 'projects:detail' project.slug %}" class="card card-hover reveal group overflow-hidden">
+      <div class="relative h-52 overflow-hidden">
+        {% if project.cover_image %}
+        <img src="{{ project.cover_image.file.url }}" alt="{{ project.cover_image.alt_text|default:project.title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy">
+        {% else %}
+        <div class="h-full w-full bg-gradient-to-br from-brand-800 to-brand-950"></div>
+        {% endif %}
+        {% if project.status %}
+        <span class="badge absolute left-4 top-4 bg-white/90 text-ink-800 shadow-soft backdrop-blur">{{ project.status.name }}</span>
+        {% endif %}
+      </div>
+      <div class="p-6">
+        <p class="text-xs font-semibold uppercase tracking-wider text-brand-600">{{ project.location|default:"RDC" }}</p>
+        <h3 class="mt-2 font-display text-lg font-bold leading-snug text-ink-900 transition group-hover:text-brand-700">{{ project.title }}</h3>
+        {% if project.beneficiaries %}<p class="mt-2 text-sm leading-relaxed text-ink-500">{{ project.beneficiaries|truncatewords:18 }}</p>{% endif %}
+        <div class="mt-5">
+          <div class="progress"><div style="width: {{ project.progress_percent|default:0 }}%"></div></div>
+          <div class="mt-2 flex items-center justify-between text-xs">
+            <span class="font-semibold text-ink-600">{{ project.progress_percent|default:0 }}% de progression</span>
+            <span class="inline-flex items-center gap-1 font-semibold text-brand-700">
+              Voir le projet
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 transition group-hover:translate-x-0.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </span>
+          </div>
+        </div>
+      </div>
+    </a>
+    {% empty %}
+    <p class="col-span-full text-ink-500">Les projets seront publiés après migration des données.</p>
+    {% endfor %}
+  </div>
+</section>
+
+{# ============ MOT DU FONDATEUR ============ #}
+{% if founder %}
+<section class="bg-white">
+  <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+    <div class="grid items-center gap-14 lg:grid-cols-2">
+      <div class="reveal relative order-2 lg:order-1">
+        <div class="absolute -left-6 -top-6 h-40 w-40 rounded-3xl bg-brand-100/70"></div>
+        <div class="absolute -bottom-8 -right-8 h-48 w-48 rounded-full bg-accent-100/60"></div>
+        {% if founder.image %}
+        <img src="{{ founder.image }}" alt="Activités de la {{ site_settings.organization_name }} — Bukavu" class="relative h-[26rem] w-full rounded-3xl object-cover shadow-float" loading="lazy">
+        {% endif %}
+        <div class="absolute -bottom-6 left-8 rounded-2xl bg-brand-800 px-6 py-4 shadow-float ring-1 ring-white/20">
+          <p class="font-display text-2xl font-extrabold text-white">2018</p>
+          <p class="text-xs font-medium text-brand-200">Année de fondation à Bukavu</p>
+        </div>
+      </div>
+      <div class="reveal order-1 lg:order-2">
+        <p class="eyebrow">Mot du fondateur</p>
+        <h2 class="section-title mt-3">Une œuvre née à Bukavu, portée par la compassion</h2>
+        <div class="mt-6 rounded-2xl border-l-4 border-brand-500 bg-brand-50/60 p-6">
+          <p class="font-display text-lg font-medium italic leading-relaxed text-ink-700">{{ founder.excerpt }}</p>
+        </div>
+        <div class="mt-6 flex items-center gap-4">
+          <div class="flex h-12 w-12 items-center justify-center rounded-full bg-brand-700 font-display text-lg font-bold text-white">M</div>
+          <div>
+            <p class="font-display font-bold text-ink-900">Marie-Manassé ZIRHUMANA KAMOLE</p>
+            <p class="text-sm text-ink-500">Coordinateur de la {{ site_settings.organization_name }}</p>
+          </div>
+        </div>
+        <a href="{% url 'pages:history' %}" class="btn btn-primary mt-8">
+          Notre histoire
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ============ TÉMOIGNAGES ============ #}
+{% if testimonials %}
+<section class="bg-ink-100/60 py-20 lg:py-28">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="reveal mx-auto max-w-2xl text-center">
+      <p class="eyebrow justify-center">Témoignages</p>
+      <h2 class="section-title mt-3">Des vies changées</h2>
+    </div>
+    <div class="mt-14 grid gap-7 md:grid-cols-3">
+      {% for testimonial in testimonials %}
+      <figure class="card reveal relative p-8">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="absolute -top-4 left-8 h-9 w-9 rounded-full bg-brand-700 p-2 text-white shadow-lift"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+        <blockquote class="pt-2 text-[15px] leading-relaxed text-ink-600">« {{ testimonial.content|truncatewords:42 }} »</blockquote>
+        <figcaption class="mt-6 flex items-center gap-3 border-t border-ink-100 pt-5">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 font-display font-bold text-brand-700">{{ testimonial.author_name|default:"T"|first }}</div>
+          <div>
+            <p class="text-sm font-bold text-ink-900">{{ testimonial.author_name|default:"Témoignage" }}</p>
+            {% if testimonial.role_or_relation %}<p class="text-xs text-ink-500">{{ testimonial.role_or_relation }}</p>{% endif %}
+          </div>
+        </figcaption>
+      </figure>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ============ PARTENAIRES ============ #}
+{% if partners %}
+<section class="border-y border-ink-200/60 bg-white py-14">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="reveal mx-auto max-w-2xl text-center">
+      <p class="eyebrow justify-center">Ils nous soutiennent</p>
+      <h2 class="section-title mt-3">Partenaires et donateurs institutionnels</h2>
+    </div>
+    <div class="mt-10 flex flex-wrap items-center justify-center gap-6">
+      {% for partner in partners %}
+      {% if partner.website %}
+      <a href="{{ partner.website }}" target="_blank" rel="noopener" class="card card-hover reveal flex items-center gap-3 px-6 py-4">
+      {% else %}
+      <div class="card flex items-center gap-3 px-6 py-4">
+      {% endif %}
+        {% if partner.logo %}
+        <img src="{{ partner.logo.file.url }}" alt="{{ partner.name }}" class="h-10 w-auto object-contain" loading="lazy">
+        {% else %}
+        <span class="font-display text-lg font-bold text-ink-700">{{ partner.name }}</span>
+        {% endif %}
+      {% if partner.website %}
+      </a>
+      {% else %}
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ============ ACTUALITÉS ============ #}
+<section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+  <div class="flex flex-wrap items-end justify-between gap-6">
+    <div class="reveal max-w-2xl">
+      <p class="eyebrow">Actualités</p>
+      <h2 class="section-title mt-3">Les dernières nouvelles de nos programmes</h2>
+    </div>
+    <a href="{% url 'articles:list' %}" class="btn btn-outline btn-sm reveal">Toutes les actualités
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </a>
+  </div>
+  <div class="mt-12 grid gap-7 md:grid-cols-3">
+    {% for article in latest_articles %}
+    <a href="{% url 'articles:detail' article.slug %}" class="card card-hover reveal group overflow-hidden">
+      <div class="relative h-44 overflow-hidden">
+        {% if article.cover_image %}
+        <img src="{{ article.cover_image.file.url }}" alt="{{ article.cover_image.alt_text|default:article.title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy">
+        {% else %}
+        <div class="h-full w-full bg-gradient-to-br from-brand-700 to-brand-950"></div>
+        {% endif %}
+        <span class="badge absolute left-4 top-4 bg-white/90 text-brand-700 shadow-soft backdrop-blur">{{ article.published_at|date:"d M Y" }}</span>
+      </div>
+      <div class="p-6">
+        <div class="flex flex-wrap gap-2">
+          {% for category in article.categories.all|slice:":2" %}<span class="badge badge-brand">{{ category.name }}</span>{% endfor %}
+        </div>
+        <h3 class="mt-3 font-display text-lg font-bold leading-snug text-ink-900 transition group-hover:text-brand-700">{{ article.title }}</h3>
+        {% if article.excerpt %}<p class="mt-2 text-sm leading-relaxed text-ink-500">{{ article.excerpt|truncatewords:20 }}</p>{% endif %}
+        <p class="mt-4 flex items-center gap-1.5 text-xs text-ink-400">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          {{ article.reading_time_minutes }} min de lecture
+        </p>
+      </div>
+    </a>
+    {% empty %}
+    <p class="col-span-full text-ink-500">Les actualités seront publiées après la migration.</p>
+    {% endfor %}
+  </div>
+</section>
+
+{# ============ APPEL AUX DONS ============ #}
+<section class="relative overflow-hidden bg-brand-900">
+  <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(245,158,11,0.2),transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(20,184,166,0.25),transparent_55%)]"></div>
+  <div class="relative mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 lg:py-24">
+    <div class="reveal">
+      <span class="badge badge-accent mx-auto">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+        Votre générosité change des vies
+      </span>
+      <h2 class="section-title mt-5 text-white">Chaque don, unique ou mensuel, soutient les enfants orphelins et l'autonomisation des femmes à Bukavu et Goma.</h2>
+      <p class="mx-auto mt-4 max-w-2xl text-lg text-brand-100">Vous recevez un reçu officiel par email et le suivi de l'impact de votre contribution sur le terrain.</p>
+      <div class="mt-9 flex flex-wrap justify-center gap-4">
+        <a href="{% url 'donations:create' %}" class="btn btn-accent btn-lg">Faire un don maintenant</a>
+        <a href="{% url 'contact:create' %}" class="btn btn-outline-light btn-lg">Nous contacter</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

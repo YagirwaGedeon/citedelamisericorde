@@ -1,0 +1,130 @@
+{% comment %}
+Éditeur rich-text léger (vanilla JS) — s'injecte au-dessus d'un textarea d'administration.
+Usage : {% include "admin/richtext_editor.html" with field_id="id_content" %}
+{% endcomment %}
+<script>
+(function () {
+  var fieldId = "{{ field_id|default:'id_content' }}";
+  var textarea = document.getElementById(fieldId);
+  if (!textarea) return;
+
+  var wrap = document.createElement("div");
+  wrap.className = "rt-editor";
+
+  var toolbar = document.createElement("div");
+  toolbar.className = "rt-toolbar";
+  toolbar.setAttribute("role", "toolbar");
+  toolbar.setAttribute("aria-label", "Barre d'édition");
+
+  var buttons = [
+    { label: "G", title: "Gras", tag: "b", html: "<strong>%s</strong>" },
+    { label: "I", title: "Italique", tag: "i", html: "<em>%s</em>" },
+    { label: "S", title: "Souligné", tag: "u", html: "<u>%s</u>" },
+    { label: "H2", title: "Titre H2", tag: "h2", html: "<h2>%s</h2>" },
+    { label: "H3", title: "Titre H3", tag: "h3", html: "<h3>%s</h3>" },
+    { label: "• Liste", title: "Liste à puces", tag: "ul", html: "<ul>\n<li>%s</li>\n</ul>" },
+    { label: "1. Liste", title: "Liste numérotée", tag: "ol", html: "<ol>\n<li>%s</li>\n</ol>" },
+    { label: "« Citation", title: "Citation", tag: "blockquote", html: "<blockquote>%s</blockquote>" },
+    { label: "¶", title: "Paragraphe", tag: "p", html: "<p>%s</p>" }
+  ];
+
+  function insertAround(tag, html) {
+    var start = textarea.selectionStart;
+    var end = textarea.selectionEnd;
+    var selected = textarea.value.slice(start, end) || "Texte";
+    var insert;
+    if (tag === "a") {
+      var url = prompt("Adresse du lien (URL) :", "https://");
+      if (!url) return;
+      insert = '<a href="' + url + '">' + selected + "</a>";
+    } else if (tag === "img") {
+      var src = prompt("Adresse de l'image (URL) :", "https://");
+      if (!src) return;
+      var alt = prompt("Texte alternatif de l'image :", "");
+      insert = '<img src="' + src + '" alt="' + alt + '">';
+    } else {
+      insert = html.replace("%s", selected);
+    }
+    textarea.setRangeText(insert, start, end, "end");
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    textarea.focus();
+  }
+
+  buttons.forEach(function (b) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "rt-btn";
+    btn.textContent = b.label;
+    btn.title = b.title;
+    btn.setAttribute("aria-label", b.title);
+    btn.addEventListener("click", function () { insertAround(b.tag, b.html); });
+    toolbar.appendChild(btn);
+  });
+
+  var linkBtn = document.createElement("button");
+  linkBtn.type = "button";
+  linkBtn.className = "rt-btn";
+  linkBtn.textContent = "🔗";
+  linkBtn.title = "Insérer un lien";
+  linkBtn.setAttribute("aria-label", "Insérer un lien");
+  linkBtn.addEventListener("click", function () { insertAround("a", ""); });
+  toolbar.appendChild(linkBtn);
+
+  var imgBtn = document.createElement("button");
+  imgBtn.type = "button";
+  imgBtn.className = "rt-btn";
+  imgBtn.textContent = "🖼";
+  imgBtn.title = "Insérer une image (URL)";
+  imgBtn.setAttribute("aria-label", "Insérer une image par URL");
+  imgBtn.addEventListener("click", function () { insertAround("img", ""); });
+  toolbar.appendChild(imgBtn);
+
+  var previewBtn = document.createElement("button");
+  previewBtn.type = "button";
+  previewBtn.className = "rt-btn rt-btn-preview";
+  previewBtn.textContent = "Aperçu";
+  previewBtn.title = "Afficher / masquer l'aperçu";
+  previewBtn.setAttribute("aria-pressed", "false");
+  toolbar.appendChild(previewBtn);
+
+  var hint = document.createElement("span");
+  hint.className = "rt-hint";
+  hint.textContent = "Le HTML est purifié à l'enregistrement.";
+  toolbar.appendChild(hint);
+
+  var preview = document.createElement("iframe");
+  preview.className = "rt-preview";
+  preview.style.display = "none";
+  preview.title = "Aperçu du contenu";
+
+  function renderPreview() {
+    var doc = preview.contentDocument || preview.contentWindow.document;
+    doc.open();
+    doc.write(
+      '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' +
+      'body{font-family:Inter,system-ui,sans-serif;font-size:16px;line-height:1.7;color:#1e293b;padding:1.5rem;max-width:720px;margin:0 auto;}' +
+      'h2,h3{font-family:Sora,sans-serif;color:#0f172a;}img{max-width:100%;border-radius:.5rem;}' +
+      'blockquote{border-left:3px solid #14b8a6;margin:1rem 0;padding:.25rem 1rem;color:#475569;}' +
+      'a{color:#0f766e;}</style></head><body>' +
+      (textarea.value || "<p><em>Aperçu vide.</em></p>") +
+      "</body></html>"
+    );
+    doc.close();
+  }
+
+  previewBtn.addEventListener("click", function () {
+    var hidden = preview.style.display === "none";
+    preview.style.display = hidden ? "block" : "none";
+    previewBtn.setAttribute("aria-pressed", hidden ? "true" : "false");
+    if (hidden) renderPreview();
+  });
+  textarea.addEventListener("input", function () {
+    if (preview.style.display !== "none") renderPreview();
+  });
+
+  textarea.parentNode.insertBefore(wrap, textarea);
+  wrap.appendChild(toolbar);
+  wrap.appendChild(preview);
+  wrap.appendChild(textarea);
+})();
+</script>

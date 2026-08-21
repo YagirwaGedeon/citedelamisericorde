@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load icons %}
+
+{% block title %}Page introuvable — {{ site_settings.organization_name }}{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-2xl px-4 py-24 text-center sm:px-6">
+  <div class="animate-fade-up">
+    <p class="font-display text-8xl font-extrabold tracking-tight text-brand-700/20 sm:text-9xl">404</p>
+    <div class="-mt-6 flex justify-center">
+      <span class="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 text-brand-700 ring-1 ring-brand-100">{% icon "map" size=30 %}</span>
+    </div>
+    <h1 class="mt-6 font-display text-3xl font-extrabold tracking-tight text-ink-900">Cette page n'existe pas</h1>
+    <p class="mx-auto mt-4 max-w-md text-lg text-ink-500">
+      La page que vous cherchez a été déplacée ou n'existe plus. Retournez à l'accueil ou explorez nos actualités.
+    </p>
+    <div class="mt-10 flex flex-wrap justify-center gap-3">
+      <a href="{% url 'home' %}" class="btn btn-primary">Retour à l'accueil</a>
+      <a href="{% url 'articles:list' %}" class="btn btn-outline">Nos actualités</a>
+      <a href="{% url 'contact:create' %}" class="btn btn-outline">Nous contacter</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

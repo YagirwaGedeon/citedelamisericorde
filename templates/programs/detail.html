@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load icons %}
+
+{% block title %}{{ program.title }} — {{ site_settings.organization_name }}{% endblock %}
+{% block meta_description %}{{ program.short_description }}{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-5xl px-4 py-14 sm:px-6 lg:px-8">
+  <nav aria-label="Fil d'Ariane" class="flex items-center gap-1.5 text-xs font-medium text-ink-400">
+    <a href="{% url 'home' %}" class="transition hover:text-brand-700">Accueil</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="m9 18 6-6-6-6"/></svg>
+    <a href="{% url 'programs:list' %}" class="transition hover:text-brand-700">Programmes</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="m9 18 6-6-6-6"/></svg>
+    <span class="text-ink-600">{{ program.title|truncatechars:40 }}</span>
+  </nav>
+
+  <div class="mt-6 flex items-start gap-5">
+    <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-brand-700 text-white shadow-lift">{% icon program.icon|default:"heart" size=30 %}</div>
+    <div>
+      <p class="eyebrow">Programme</p>
+      <h1 class="mt-2 font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">{{ program.title }}</h1>
+    </div>
+  </div>
+  {% if program.short_description %}<p class="mt-6 max-w-3xl text-lg leading-relaxed text-ink-500">{{ program.short_description }}</p>{% endif %}
+
+  {% if program.image %}
+  <img src="{{ program.image.file.url }}" alt="{{ program.image.alt_text|default:program.title }}" class="mt-8 h-72 w-full rounded-2xl object-cover shadow-lift">
+  {% endif %}
+
+  <div class="prose-custom mt-10">{{ program.description|linebreaks }}</div>
+
+  {% if projects %}
+  <h2 class="mt-14 font-display text-2xl font-bold text-ink-900">Projets liés</h2>
+  <div class="mt-6 grid gap-6 md:grid-cols-2">
+    {% for project in projects %}
+    <a href="{% url 'projects:detail' project.slug %}" class="card card-hover group flex items-center gap-4 p-5">
+      <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">{% icon "tent" size=20 %}</div>
+      <div class="min-w-0">
+        <h3 class="truncate font-display font-bold text-ink-900 transition group-hover:text-brand-700">{{ project.title }}</h3>
+        <p class="mt-0.5 text-xs text-ink-500">{{ project.location|default:"RDC" }}{% if project.status %} · {{ project.status.name }}{% endif %}</p>
+      </div>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-auto h-4 w-4 shrink-0 text-ink-300 transition group-hover:translate-x-0.5 group-hover:text-brand-600"><path d="m9 18 6-6-6-6"/></svg>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="mt-14 rounded-2xl bg-brand-800 p-8 text-center text-white">
+    <h2 class="font-display text-xl font-bold">Soutenir ce programme</h2>
+    <p class="mx-auto mt-2 max-w-md text-sm text-brand-100">Chaque contribution compte pour faire vivre ce programme sur le terrain.</p>
+    <a href="{% url 'donations:create' %}" class="btn btn-accent mt-5">Faire un don</a>
+  </div>
+</section>
+{% endblock %}

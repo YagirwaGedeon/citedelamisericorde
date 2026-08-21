@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load icons %}
+
+{% block title %}Don annulé — {{ site_settings.organization_name }}{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
+  <div class="animate-fade-up">
+    <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 text-amber-600 ring-8 ring-amber-50">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-9 w-9"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+    </div>
+    <h1 class="mt-8 font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">Paiement non abouti</h1>
+    <p class="mx-auto mt-4 max-w-md text-lg text-ink-500">
+      Le paiement de votre don (<strong class="text-ink-700">{{ donation.reference }}</strong>) n'a pas pu être confirmé.
+      Aucun montant n'a été débité. Vous pouvez réessayer ou nous contacter.
+    </p>
+    <div class="mt-10 flex flex-wrap justify-center gap-3">
+      <a href="{% url 'donations:checkout' donation.pk %}" class="btn btn-accent">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+        Réessayer le paiement
+      </a>
+      <a href="{% url 'contact:create' %}" class="btn btn-outline">Nous contacter</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

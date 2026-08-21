@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load icons %}
+
+{% block title %}{{ gallery.title }} — {{ site_settings.organization_name }}{% endblock %}
+{% block meta_description %}{{ gallery.description|truncatewords:25 }}{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+  <nav aria-label="Fil d'Ariane" class="flex items-center gap-1.5 text-xs font-medium text-ink-400">
+    <a href="{% url 'home' %}" class="transition hover:text-brand-700">Accueil</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="m9 18 6-6-6-6"/></svg>
+    <a href="{% url 'gallery:list' %}" class="transition hover:text-brand-700">Galerie</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="m9 18 6-6-6-6"/></svg>
+    <span class="text-ink-600">{{ gallery.title|truncatechars:40 }}</span>
+  </nav>
+
+  <h1 class="mt-4 font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">{{ gallery.title }}</h1>
+  {% if gallery.description %}<p class="mt-3 max-w-2xl text-lg leading-relaxed text-ink-500">{{ gallery.description }}</p>{% endif %}
+
+  <div class="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4" id="gallery-grid">
+    {% for item in gallery.items.all %}
+    <figure class="group relative cursor-zoom-in overflow-hidden rounded-xl shadow-soft transition duration-300 hover:shadow-lift">
+      <img src="{{ item.media.file.url }}" alt="{{ item.media.alt_text|default:item.caption }}" class="glight h-44 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-56" loading="lazy">
+      {% if item.caption %}
+      <figcaption class="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-ink-950/90 to-transparent p-4 pt-10 text-xs font-medium text-white transition duration-300 group-hover:translate-y-0">{{ item.caption }}</figcaption>
+      {% endif %}
+    </figure>
+    {% empty %}
+    <p class="col-span-full card p-12 text-center text-ink-500">Aucune photo dans cette galerie.</p>
+    {% endfor %}
+  </div>
+</section>
+
+{% if gallery.items.count %}
+<div id="lightbox" class="fixed inset-0 z-[80] hidden items-center justify-center bg-ink-950/95 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Visionneuse d'images">
+  <button type="button" id="lightbox-close" class="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20" aria-label="Fermer">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+  </button>
+  <button type="button" id="lightbox-prev" class="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:left-6" aria-label="Image précédente">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="m15 18-6-6 6-6"/></svg>
+  </button>
+  <img id="lightbox-img" src="" alt="" class="max-h-[85vh] max-w-[85vw] rounded-2xl object-contain shadow-float">
+  <p id="lightbox-caption" class="absolute bottom-6 left-1/2 w-full max-w-xl -translate-x-1/2 px-4 text-center text-sm text-ink-300"></p>
+  <button type="button" id="lightbox-next" class="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:right-6" aria-label="Image suivante">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="m9 18 6-6-6-6"/></svg>
+  </button>
+</div>
+
+<script>
+(function () {
+  var images = Array.prototype.slice.call(document.querySelectorAll(".glight"));
+  var lightbox = document.getElementById("lightbox");
+  var img = document.getElementById("lightbox-img");
+  var caption = document.getElementById("lightbox-caption");
+  var index = 0;
+  function open(i) {
+    index = i;
+    img.src = images[index].src;
+    img.alt = images[index].alt || "";
+    caption.textContent = images[index].alt || "";
+    lightbox.classList.remove("hidden");
+    lightbox.classList.add("flex");
+    document.body.style.overflow = "hidden";
+  }
+  function close() {
+    lightbox.classList.add("hidden");
+    lightbox.classList.remove("flex");
+    document.body.style.overflow = "";
+  }
+  function nav(dir) { open((index + dir + images.length) % images.length); }
+  images.forEach(function (el, i) { el.addEventListener("click", function () { open(i); }); });
+  document.getElementById("lightbox-close").addEventListener("click", close);
+  document.getElementById("lightbox-prev").addEventListener("click", function () { nav(-1); });
+  document.getElementById("lightbox-next").addEventListener("click", function () { nav(1); });
+  lightbox.addEventListener("click", function (e) { if (e.target === lightbox) close(); });
+  document.addEventListener("keydown", function (e) {
+    if (lightbox.classList.contains("hidden")) return;
+    if (e.key === "Escape") close();
+    if (e.key === "ArrowLeft") nav(-1);
+    if (e.key === "ArrowRight") nav(1);
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

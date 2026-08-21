@@ -1,0 +1,7 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+{% include "admin/richtext_editor.html" with field_id="id_content" %}
+{% endblock %}

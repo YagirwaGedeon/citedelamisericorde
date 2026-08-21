@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% load icons %}
+
+{% block title %}{{ project.title }} — {{ site_settings.organization_name }}{% endblock %}
+{% block meta_description %}{{ project.beneficiaries|truncatewords:25 }}{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
+  <nav aria-label="Fil d'Ariane" class="flex items-center gap-1.5 text-xs font-medium text-ink-400">
+    <a href="{% url 'home' %}" class="transition hover:text-brand-700">Accueil</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="m9 18 6-6-6-6"/></svg>
+    <a href="{% url 'projects:list' %}" class="transition hover:text-brand-700">Projets</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="m9 18 6-6-6-6"/></svg>
+    <span class="text-ink-600">{{ project.title|truncatechars:40 }}</span>
+  </nav>
+
+  <div class="mt-6 flex flex-wrap items-center gap-3">
+    <h1 class="font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">{{ project.title }}</h1>
+    {% if project.status %}<span class="badge {% if project.status.code == 'urgent' %}badge-red{% elif project.status.code == 'completed' %}badge-green{% else %}badge-blue{% endif %}">{{ project.status.name }}</span>{% endif %}
+  </div>
+
+  {% if project.cover_image %}
+  <img src="{{ project.cover_image.file.url }}" alt="{{ project.cover_image.alt_text|default:project.title }}" class="mt-8 h-72 w-full rounded-2xl object-cover shadow-lift sm:h-96">
+  {% else %}
+  <div class="mt-8 h-72 w-full rounded-2xl bg-gradient-to-br from-brand-800 to-brand-950 sm:h-96"></div>
+  {% endif %}
+
+  <div class="mt-10 grid gap-10 lg:grid-cols-[1fr_20rem]">
+    <div class="space-y-10">
+      {% if project.context %}<div class="reveal"><h2 class="font-display text-xl font-bold text-ink-900">Contexte</h2><p class="prose-custom mt-2">{{ project.context }}</p></div>{% endif %}
+      {% if project.problem %}<div class="reveal"><h2 class="font-display text-xl font-bold text-ink-900">Le problème</h2><p class="prose-custom mt-2">{{ project.problem }}</p></div>{% endif %}
+      {% if project.objectives %}<div class="reveal"><h2 class="font-display text-xl font-bold text-ink-900">Objectifs</h2><div class="prose-custom mt-2">{{ project.objectives|linebreaks }}</div></div>{% endif %}
+      {% if project.activities %}<div class="reveal"><h2 class="font-display text-xl font-bold text-ink-900">Activités réalisées</h2><div class="prose-custom mt-2">{{ project.activities|linebreaks }}</div></div>{% endif %}
+      {% if project.results %}<div class="reveal"><h2 class="font-display text-xl font-bold text-ink-900">Résultats</h2><div class="prose-custom mt-2">{{ project.results|linebreaks }}</div></div>{% endif %}
+    </div>
+
+    <aside class="space-y-6 lg:sticky lg:top-24 lg:self-start">
+      <div class="card reveal p-6">
+        <h3 class="font-display text-sm font-bold uppercase tracking-wider text-ink-900">Fiche projet</h3>
+        <dl class="mt-4 space-y-4 text-sm">
+          {% if project.location %}
+          <div class="flex items-start gap-3">
+            <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700">{% icon "pin" size=16 %}</span>
+            <div><dt class="font-semibold text-ink-900">Localisation</dt><dd class="text-ink-500">{{ project.location }}</dd></div>
+          </div>
+          {% endif %}
+          {% if project.program %}
+          <div class="flex items-start gap-3">
+            <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700">{% icon "target" size=16 %}</span>
+            <div><dt class="font-semibold text-ink-900">Programme</dt><dd class="text-ink-500">{{ project.program.title }}</dd></div>
+          </div>
+          {% endif %}
+          {% if project.start_date %}
+          <div class="flex items-start gap-3">
+            <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700">{% icon "calendar" size=16 %}</span>
+            <div><dt class="font-semibold text-ink-900">Depuis</dt><dd class="text-ink-500">{{ project.start_date|date:"F Y" }}</dd></div>
+          </div>
+          {% endif %}
+          {% if project.budget %}
+          <div class="flex items-start gap-3">
+            <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700">{% icon "banknote" size=16 %}</span>
+            <div><dt class="font-semibold text-ink-900">Budget</dt><dd class="text-ink-500">{{ project.budget }} {{ project.currency }}</dd></div>
+          </div>
+          {% endif %}
+          {% if project.beneficiaries %}
+          <div class="flex items-start gap-3">
+            <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700">{% icon "users" size=16 %}</span>
+            <div><dt class="font-semibold text-ink-900">Bénéficiaires</dt><dd class="text-ink-500">{{ project.beneficiaries }}</dd></div>
+          </div>
+          {% endif %}
+        </dl>
+      </div>
+
+      <div class="card reveal p-6">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-ink-700">Avancement</span>
+          <span class="font-display text-xl font-extrabold text-brand-700">{{ project.progress_percent|default:0 }}%</span>
+        </div>
+        <div class="progress mt-3"><div style="width: {{ project.progress_percent|default:0 }}%"></div></div>
+      </div>
+
+      {% if project.needs_donation %}
+      <div class="card reveal relative overflow-hidden bg-brand-800 p-6 text-white">
+        <div class="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-brand-500/20"></div>
+        <h3 class="font-display text-lg font-bold">Soutenez ce projet</h3>
+        <p class="mt-2 text-sm text-brand-100">Votre don contribue directement à ce projet.</p>
+        <a href="{% url 'donations:create' %}" class="btn btn-accent btn-block mt-5">Faire un don</a>
+      </div>
+      {% endif %}
+    </aside>
+  </div>
+</section>
+
+{% if project.gallery.all %}
+<section class="bg-ink-100/60 py-14">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <h2 class="font-display text-2xl font-bold text-ink-900">Galerie du projet</h2>
+    <div class="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+      {% for item in project.gallery.all %}
+      <img src="{{ item.media.file.url }}" alt="{{ item.caption|default:project.title }}" class="h-40 w-full rounded-xl object-cover shadow-soft transition duration-300 hover:scale-[1.02]" loading="lazy">
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if related %}
+<section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+  <h2 class="font-display text-2xl font-bold text-ink-900">Autres projets</h2>
+  <div class="mt-8 grid gap-7 md:grid-cols-3">
+    {% for item in related %}
+    <a href="{% url 'projects:detail' item.slug %}" class="card card-hover group overflow-hidden">
+      <div class="relative h-40 overflow-hidden">
+        {% if item.cover_image %}
+        <img src="{{ item.cover_image.file.url }}" alt="{{ item.cover_image.alt_text|default:item.title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy">
+        {% else %}
+        <div class="h-full w-full bg-gradient-to-br from-brand-700 to-brand-950"></div>
+        {% endif %}
+        {% if item.status %}<span class="badge absolute left-4 top-4 bg-white/90 text-ink-800">{{ item.status.name }}</span>{% endif %}
+      </div>
+      <div class="p-5">
+        <h3 class="font-display text-base font-bold leading-snug text-ink-900 transition group-hover:text-brand-700">{{ item.title }}</h3>
+        <p class="mt-2 text-xs text-ink-400">{{ item.location|default:"RDC" }} · {{ item.progress_percent|default:0 }}%</p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

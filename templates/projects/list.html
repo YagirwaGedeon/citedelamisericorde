@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load icons %}
+
+{% block title %}Nos projets — {{ site_settings.organization_name }}{% endblock %}
+{% block meta_description %}Les projets d'action sociale de la {{ site_settings.organization_name }} : malnutrition, autonomisation des femmes, éducation et environnement à Bukavu et Goma.{% endblock %}
+
+{% block content %}
+{% include "partials/page_hero.html" with page_title="Nos projets" page_subtitle="Découvrez nos actions de terrain, leur avancement et les communautés bénéficiaires." %}
+
+<section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+  <div class="reveal flex flex-wrap items-center gap-2" role="tablist" aria-label="Filtrer par statut">
+    <a href="{% url 'projects:list' %}" class="btn {% if not current_status %}btn-primary{% else %}btn-outline{% endif %} btn-sm">Tous</a>
+    {% for status in statuses %}
+    <a href="{% url 'projects:list' %}?statut={{ status.code }}" class="btn {% if current_status.code == status.code %}btn-primary{% else %}btn-outline{% endif %} btn-sm">
+      {{ status.name }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <div class="mt-10 grid gap-7 md:grid-cols-2 lg:grid-cols-3">
+    {% for project in projects %}
+    <a href="{% url 'projects:detail' project.slug %}" class="card card-hover reveal group overflow-hidden">
+      <div class="relative h-52 overflow-hidden">
+        {% if project.cover_image %}
+        <img src="{{ project.cover_image.file.url }}" alt="{{ project.cover_image.alt_text|default:project.title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy">
+        {% else %}
+        <div class="h-full w-full bg-gradient-to-br from-brand-800 to-brand-950"></div>
+        {% endif %}
+        {% if project.status %}
+        <span class="badge absolute left-4 top-4 bg-white/90 text-ink-800 shadow-soft backdrop-blur">{{ project.status.name }}</span>
+        {% endif %}
+        {% if project.needs_donation %}
+        <span class="badge badge-accent absolute right-4 top-4">Soutien ouvert</span>
+        {% endif %}
+      </div>
+      <div class="flex flex-1 flex-col p-6">
+        <p class="text-xs font-semibold uppercase tracking-wider text-brand-600">
+          {{ project.location|default:"RDC" }}{% if project.program %} · {{ project.program.title }}{% endif %}
+        </p>
+        <h2 class="mt-2 font-display text-lg font-bold leading-snug text-ink-900 transition group-hover:text-brand-700">{{ project.title }}</h2>
+        {% if project.beneficiaries %}<p class="mt-2 flex-1 text-sm leading-relaxed text-ink-500">{{ project.beneficiaries|truncatewords:18 }}</p>{% endif %}
+        <div class="mt-5">
+          <div class="progress"><div style="width: {{ project.progress_percent|default:0 }}%"></div></div>
+          <div class="mt-2 flex items-center justify-between text-xs">
+            <span class="font-semibold text-ink-600">{{ project.progress_percent|default:0 }}% de progression</span>
+            {% if project.budget %}<span class="text-ink-400">Budget : {{ project.budget }} {{ project.currency }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+    </a>
+    {% empty %}
+    <div class="col-span-full card p-12 text-center">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-ink-100 text-ink-400">{% icon "tent" size=26 %}</div>
+      <p class="mt-4 font-display font-bold text-ink-800">Aucun projet dans cette catégorie</p>
+      <p class="mt-1 text-sm text-ink-500">Les projets seront publiés après migration des données.</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

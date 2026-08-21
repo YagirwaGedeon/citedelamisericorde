@@ -1,0 +1,70 @@
+# Traduction française (langue source) — Cité de la Miséricorde
+# Ce fichier sert de référence ; msgstr = msgid (aucune transformation).
+msgid ""
+msgstr ""
+"Project-Id-Version: citedelamisericorde 1.0\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "Accueil"
+msgstr "Accueil"
+
+msgid "À propos"
+msgstr "À propos"
+
+msgid "À propos de nous"
+msgstr "À propos de nous"
+
+msgid "Notre histoire"
+msgstr "Notre histoire"
+
+msgid "Notre mission"
+msgstr "Notre mission"
+
+msgid "Notre vision"
+msgstr "Notre vision"
+
+msgid "Nos valeurs"
+msgstr "Nos valeurs"
+
+msgid "Notre équipe"
+msgstr "Notre équipe"
+
+msgid "Nos actions"
+msgstr "Nos actions"
+
+msgid "Nos programmes"
+msgstr "Nos programmes"
+
+msgid "Nos projets"
+msgstr "Nos projets"
+
+msgid "Notre impact"
+msgstr "Notre impact"
+
+msgid "Galerie"
+msgstr "Galerie"
+
+msgid "Partenaires"
+msgstr "Partenaires"
+
+msgid "Actualités"
+msgstr "Actualités"
+
+msgid "Contact"
+msgstr "Contact"
+
+msgid "Faire un don"
+msgstr "Faire un don"
+
+msgid "Bukavu & Goma — RDC"
+msgstr "Bukavu & Goma — RDC"
+
+msgid "Choisir la langue"
+msgstr "Choisir la langue"
+
+msgid "Ouvrir le menu"
+msgstr "Ouvrir le menu"

@@ -1,0 +1,155 @@
+{% load i18n static tz %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE|default:'fr' }}">
+<head>
+<title>{% block title %}{% endblock %}</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="NONE,NOARCHIVE">
+<link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'admin/css/admin.css' %}">
+{% block extrastyle %}{% endblock %}
+{% block extrahead %}{% endblock %}
+</head>
+<body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}" data-admin-utc-offset="{% now 'Z' %}">
+
+{% if not is_popup %}
+<aside class="adm-sidebar" id="adm-sidebar">
+  <div class="adm-brand">
+    <img src="{% static 'img/logo.png' %}" alt="" class="adm-brand-logo">
+    <div class="adm-brand-text">
+      <strong>Cité de la Miséricorde</strong>
+      <span>Administration</span>
+    </div>
+    <button type="button" class="adm-collapse-btn" id="sidebar-toggle" aria-label="Réduire le menu">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="adm-ic"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+  </div>
+  <nav class="adm-nav" aria-label="Navigation d'administration">
+    <p class="adm-nav-label">Pilotage</p>
+    <a href="{% url 'admin:index' %}" class="adm-nav-link {% if request.resolver_match.url_name == 'index' or not request.resolver_match.url_name %}is-active{% endif %}">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="adm-ic"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+      <span>Tableau de bord</span>
+    </a>
+    {% if site_url %}
+    <a href="{{ site_url }}" class="adm-nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="adm-ic"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Voir le site</span>
+    </a>
+    {% endif %}
+
+    {% if available_apps %}
+    <p class="adm-nav-label adm-nav-label-mt">Modules</p>
+    {% for app in available_apps %}
+    <div class="adm-group">
+      <button type="button" class="adm-group-btn {% if not app.models %}adm-group-empty{% endif %}" {% if app.models %}aria-expanded="true"{% endif %}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="adm-ic"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+        <span>{{ app.name }}</span>
+        {% if app.models %}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="adm-chev"><path d="m6 9 6 6 6-6"/></svg>{% endif %}
+      </button>
+      {% if app.models %}
+      <ul class="adm-sub">
+        {% for model in app.models %}
+        <li><a href="{{ model.admin_url }}" class="adm-sub-link">{{ model.name }}</a></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <p class="adm-nav-label adm-nav-label-mt">Compte</p>
+    {% if user.has_usable_password %}
+    <a href="{% url 'admin:password_change' %}" class="adm-nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="adm-ic"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span>Mot de passe</span>
+    </a>
+    {% endif %}
+  </nav>
+</aside>
+{% endif %}
+
+<div class="adm-shell {% if is_popup %}adm-shell-popup{% endif %}" id="adm-shell">
+  {% if not is_popup %}
+  <header class="adm-topbar">
+    <button type="button" class="adm-mobile-menu" id="mobile-sidebar-toggle" aria-label="Ouvrir le menu">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="adm-ic"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+    </button>
+    <div class="adm-topbar-title">
+      {% block breadcrumbs %}
+      {% if title %}<span class="adm-crumb">{{ title }}</span>{% else %}<span class="adm-crumb">Tableau de bord</span>{% endif %}
+      {% endblock %}
+    </div>
+    <div class="adm-topbar-actions">
+      <a href="{% url 'admin:contact_contactmessage_changelist' %}" class="adm-icon-btn adm-notif" aria-label="Messages reçus">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="adm-ic"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+        {% if dashboard.unread_messages %}<span class="adm-notif-dot">{{ dashboard.unread_messages }}</span>{% endif %}
+      </a>
+      <div class="adm-profile">
+        <span class="adm-avatar">{{ user.get_short_name|default:user.get_username|first|upper }}</span>
+        <div class="adm-profile-meta">
+          <strong>{{ user.get_short_name|default:user.get_username }}</strong>
+          <span>Administrateur</span>
+        </div>
+        <button type="button" class="adm-profile-btn" aria-label="Menu utilisateur" aria-haspopup="true" aria-expanded="false">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="adm-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="adm-profile-menu" id="profile-menu">
+          {% if user.is_authenticated %}
+          <a href="{% url 'admin:accounts_user_change' user.pk %}" class="adm-profile-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="adm-ic"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Mon profil
+          </a>
+          {% endif %}
+          {% if user.has_usable_password %}
+          <a href="{% url 'admin:password_change' %}" class="adm-profile-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="adm-ic"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            Changer le mot de passe
+          </a>
+          {% endif %}
+          <form method="post" action="{% url 'admin:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="adm-profile-item adm-profile-item-danger">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="adm-ic"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+              Déconnexion
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </header>
+  {% endif %}
+
+  <main class="adm-content" id="content-start" tabindex="-1">
+    {% block messages %}
+    {% if messages %}
+    <div class="adm-toasts">
+      {% for message in messages %}
+      <div class="adm-toast adm-toast-{{ message.tags|default:'info' }}">{{ message|capfirst }}
+        <button type="button" class="adm-toast-close" aria-label="Fermer">&times;</button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endblock %}
+    <div class="adm-titles">
+      {% block pretitle %}{% endblock %}
+      {% block content_title %}
+      {% if title %}<h1 class="adm-h1">{{ title }}</h1>{% endif %}
+      {% endblock %}
+      {% block content_subtitle %}{% if subtitle %}<h2 class="adm-h2">{{ subtitle }}</h2>{% endif %}{% endblock %}
+    </div>
+    {% block content %}
+    {{ content }}
+    {% endblock %}
+    {% block sidebar %}{% endblock %}
+  </main>
+</div>
+
+<script src="{% static 'admin/js/admin.js' %}" defer></script>
+{% block extrabody %}{% endblock %}
+</body>
+</html>

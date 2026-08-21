@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load icons %}
+
+{% block title %}Partenaires — {{ site_settings.organization_name }}{% endblock %}
+{% block meta_description %}Les partenaires qui accompagnent la {{ site_settings.organization_name }} dans ses actions.{% endblock %}
+
+{% block content %}
+{% include "partials/page_hero.html" with page_title="Partenaires" page_subtitle="Ceux qui nous accompagnent au quotidien dans nos actions." %}
+
+<section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+  <div class="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
+    {% for partner in partners %}
+    <div class="card card-hover reveal group p-7">
+      <div class="flex items-center gap-4">
+        {% if partner.logo %}
+        <img src="{{ partner.logo.file.url }}" alt="Logo {{ partner.name }}" class="h-14 w-14 rounded-xl object-cover ring-1 ring-ink-200">
+        {% else %}
+        <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-brand-50 font-display text-xl font-bold text-brand-700 ring-1 ring-brand-100">{{ partner.name|first }}</div>
+        {% endif %}
+        <div class="min-w-0">
+          <h2 class="truncate font-display text-lg font-bold text-ink-900">{{ partner.name }}</h2>
+          <span class="badge badge-gray mt-1">{{ partner.get_kind_display }}</span>
+        </div>
+      </div>
+      {% if partner.description %}<p class="mt-4 text-sm leading-relaxed text-ink-500">{{ partner.description|truncatewords:30 }}</p>{% endif %}
+      {% if partner.website %}
+      <a href="{{ partner.website }}" target="_blank" rel="noopener" class="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 transition hover:text-brand-800">
+        Visiter le site
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+      </a>
+      {% endif %}
+    </div>
+    {% empty %}
+    <div class="col-span-full card p-12 text-center">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-ink-100 text-ink-400">{% icon "handshake" size=26 %}</div>
+      <p class="mt-4 font-display font-bold text-ink-800">Aucun partenaire publié</p>
+      <p class="mt-1 text-sm text-ink-500">Les partenaires seront publiés après validation par l'organisation.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="card reveal mt-14 border-brand-100 bg-brand-50/50 p-10 text-center">
+    <h2 class="font-display text-2xl font-bold text-ink-900">Devenir partenaire</h2>
+    <p class="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-ink-600">Entreprises, institutions et organisations humanitaires : rejoignez-nous pour amplifier notre impact auprès des communautés vulnérables.</p>
+    <a href="{% url 'contact:create' %}" class="btn btn-primary mt-6">Nous contacter</a>
+  </div>
+</section>
+{% endblock %}
