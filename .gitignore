@@ -13,7 +13,7 @@ htmlcov/
 # Django
 db.sqlite3
 staticfiles/
-media/
+/media/
 *.log
 
 # IDE
