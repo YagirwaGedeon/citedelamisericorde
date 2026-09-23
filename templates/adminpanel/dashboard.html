@@ -1,0 +1,107 @@
+{% extends "adminpanel/base.html" %}
+
+{% block content %}
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  {% for kpi in kpis %}
+  <div class="admin-card p-5">
+    <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">{{ kpi.label }}</p>
+    <p class="mt-2 font-display text-2xl font-extrabold text-ink-900">{{ kpi.value }}</p>
+    <p class="mt-1 text-xs text-ink-500">{{ kpi.hint }}</p>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="mt-6 flex flex-wrap gap-3">
+  <a href="{% url 'adminpanel:home_create' %}" class="btn btn-primary btn-sm">+ Nouvelle publication</a>
+  <a href="{% url 'adminpanel:project_create' %}" class="btn btn-outline btn-sm">+ Nouveau projet</a>
+  <a href="{% url 'adminpanel:news_create' %}" class="btn btn-outline btn-sm">+ Nouvelle actualité</a>
+  <a href="{% url 'adminpanel:media_list' %}" class="btn btn-outline btn-sm">Importer un média</a>
+</div>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-3">
+  <section class="admin-card overflow-hidden lg:col-span-1">
+    <header class="border-b border-ink-100 px-5 py-4">
+      <h2 class="font-display text-sm font-bold text-ink-900">Dernières publications</h2>
+    </header>
+    <ul class="divide-y divide-ink-100">
+      {% for post in recent_home_posts %}
+      <li class="flex items-center justify-between gap-3 px-5 py-3">
+        <div class="min-w-0">
+          <p class="truncate text-sm font-medium text-ink-800">{{ post.title }}</p>
+          <p class="text-xs text-ink-400">{{ post.published_at|date:"d/m/Y H:i" }}</p>
+        </div>
+        <span class="badge {% if post.status == 'published' %}badge-green{% else %}badge-gray{% endif %}">{{ post.get_status_display }}</span>
+      </li>
+      {% empty %}
+      <li class="px-5 py-6 text-sm text-ink-500">Aucune publication pour l'instant.</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="admin-card overflow-hidden lg:col-span-1">
+    <header class="border-b border-ink-100 px-5 py-4">
+      <h2 class="font-display text-sm font-bold text-ink-900">Actualités récentes</h2>
+    </header>
+    <ul class="divide-y divide-ink-100">
+      {% for article in recent_articles %}
+      <li class="flex items-center justify-between gap-3 px-5 py-3">
+        <div class="min-w-0">
+          <p class="truncate text-sm font-medium text-ink-800">{{ article.title }}</p>
+          <p class="text-xs text-ink-400">{{ article.published_at|date:"d/m/Y" }}</p>
+        </div>
+        <span class="badge {% if article.status == 'published' %}badge-green{% else %}badge-gray{% endif %}">{{ article.get_status_display }}</span>
+      </li>
+      {% empty %}
+      <li class="px-5 py-6 text-sm text-ink-500">Aucune actualité.</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="admin-card overflow-hidden lg:col-span-1">
+    <header class="border-b border-ink-100 px-5 py-4">
+      <h2 class="font-display text-sm font-bold text-ink-900">Messages de contact</h2>
+    </header>
+    <ul class="divide-y divide-ink-100">
+      {% for msg in recent_messages %}
+      <li class="px-5 py-3">
+        <p class="truncate text-sm font-medium text-ink-800">{{ msg.name }} — {{ msg.get_subject_display }}</p>
+        <p class="truncate text-xs text-ink-500">{{ msg.message|truncatechars:80 }}</p>
+      </li>
+      {% empty %}
+      <li class="px-5 py-6 text-sm text-ink-500">Aucun message.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+
+<section class="admin-card mt-6 overflow-hidden">
+  <header class="border-b border-ink-100 px-5 py-4">
+    <h2 class="font-display text-sm font-bold text-ink-900">Projets</h2>
+  </header>
+  <div class="overflow-x-auto">
+    <table class="admin-table">
+      <thead>
+        <tr><th>Titre</th><th>Statut</th><th>Localisation</th><th>Progression</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for project in recent_projects %}
+        <tr>
+          <td class="font-medium text-ink-900">{{ project.title }}</td>
+          <td>{% if project.status %}<span class="badge badge-amber">{{ project.status.name }}</span>{% else %}—{% endif %}</td>
+          <td>{{ project.location|default:"—" }}</td>
+          <td>
+            <div class="progress w-32"><div style="width: {{ project.progress_percent }}%"></div></div>
+            <span class="text-xs text-ink-500">{{ project.progress_percent }} %</span>
+          </td>
+          <td class="text-right">
+            <a href="{% url 'adminpanel:project_edit' project.pk %}" class="text-sm font-semibold text-brand-700 hover:underline">Modifier</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="py-6 text-center text-ink-500">Aucun projet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

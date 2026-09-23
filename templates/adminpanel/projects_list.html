@@ -1,0 +1,48 @@
+{% extends "adminpanel/base.html" %}
+
+{% block content %}
+<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+  <form method="get" class="flex flex-wrap gap-2">
+    <input type="search" name="q" value="{{ q }}" placeholder="Rechercher un projet…" class="input w-64" aria-label="Rechercher">
+    <button type="submit" class="btn btn-outline btn-sm">Chercher</button>
+  </form>
+  <a href="{% url 'adminpanel:project_create' %}" class="btn btn-primary btn-sm">+ Nouveau projet</a>
+</div>
+
+<div class="admin-card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="admin-table">
+      <thead>
+        <tr><th>Titre</th><th>Statut</th><th>Localisation</th><th>Progression</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for project in page_obj %}
+        <tr>
+          <td>
+            <p class="font-medium text-ink-900">{{ project.title }}</p>
+            {% if project.program %}<p class="text-xs text-ink-500">{{ project.program.title }}</p>{% endif %}
+          </td>
+          <td>{% if project.status %}<span class="badge badge-amber">{{ project.status.name }}</span>{% else %}—{% endif %}</td>
+          <td>{{ project.location|default:"—" }}</td>
+          <td>
+            <div class="progress w-28"><div style="width: {{ project.progress_percent }}%"></div></div>
+            <span class="text-xs text-ink-500">{{ project.progress_percent }} %</span>
+          </td>
+          <td class="whitespace-nowrap text-right">
+            <a href="{% url 'adminpanel:project_edit' project.pk %}" class="font-semibold text-brand-700 hover:underline">Modifier</a>
+            <form method="post" action="{% url 'adminpanel:project_delete' project.pk %}" class="ml-3 inline" onsubmit="return confirm('Supprimer ce projet ?');">
+              {% csrf_token %}
+              <button type="submit" class="font-semibold text-red-600 hover:underline">Supprimer</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="py-10 text-center text-ink-500">Aucun projet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% include "adminpanel/partials/pagination.html" %}
+{% endblock %}

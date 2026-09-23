@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     "apps.analytics",
     "apps.migration",
     "apps.team",
+    "apps.adminpanel",
 ]
 
 MIDDLEWARE = [
@@ -138,9 +139,9 @@ AUTH_USER_MODEL = "accounts.User"
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
-LOGIN_URL = "admin:login"
-LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/"
+LOGIN_URL = "adminpanel:login"
+LOGIN_REDIRECT_URL = "adminpanel:dashboard"
+LOGOUT_REDIRECT_URL = "adminpanel:login"
 
 # ---------------------------------------------------------------- i18n (FR / EN / Swahili)
 LANGUAGES = [

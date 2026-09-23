@@ -18,7 +18,10 @@ sitemaps = {
 
 urlpatterns = [
     path("", home, name="home"),
-    path("admin/", admin_site.urls),
+    # Espace admin principal (panel personnalisé)
+    path("admin/", include(("apps.adminpanel.urls", "adminpanel"))),
+    # Admin Django classique (accès secondaire)
+    path("django-admin/", admin_site.urls),
     path("offline/", offline_view, name="offline"),
     path("sw.js", service_worker, name="service_worker"),
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="django.contrib.sitemaps.views.sitemap"),

@@ -1,0 +1,60 @@
+{% extends "adminpanel/base.html" %}
+
+{% block content %}
+<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+  <form method="get" class="flex gap-2">
+    <input type="search" name="q" value="{{ q }}" placeholder="Rechercher…" class="input w-64" aria-label="Rechercher">
+    <button type="submit" class="btn btn-outline btn-sm">Chercher</button>
+  </form>
+  <a href="{% url 'adminpanel:home_create' %}" class="btn btn-primary btn-sm">+ Nouvelle publication</a>
+</div>
+
+<div class="admin-card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Titre</th>
+          <th>Statut</th>
+          <th>Date</th>
+          <th>Ordre</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for post in page_obj %}
+        <tr>
+          <td>
+            <p class="font-medium text-ink-900">{{ post.title }}</p>
+            {% if post.excerpt %}<p class="truncate text-xs text-ink-500">{{ post.excerpt }}</p>{% endif %}
+          </td>
+          <td>
+            <span class="badge {% if post.status == 'published' %}badge-green{% else %}badge-gray{% endif %}">
+              {{ post.get_status_display }}
+            </span>
+          </td>
+          <td class="whitespace-nowrap text-sm">{{ post.published_at|date:"d/m/Y H:i" }}</td>
+          <td>{{ post.order }}</td>
+          <td class="whitespace-nowrap text-right">
+            <a href="{% url 'adminpanel:home_edit' post.pk %}" class="font-semibold text-brand-700 hover:underline">Modifier</a>
+            <form method="post" action="{% url 'adminpanel:home_delete' post.pk %}" class="ml-3 inline"
+                  onsubmit="return confirm('Supprimer cette publication ?');">
+              {% csrf_token %}
+              <button type="submit" class="font-semibold text-red-600 hover:underline">Supprimer</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="py-10 text-center text-ink-500">
+            Aucune publication. <a href="{% url 'adminpanel:home_create' %}" class="text-brand-700 hover:underline">Créer la première</a>.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% include "adminpanel/partials/pagination.html" %}
+{% endblock %}

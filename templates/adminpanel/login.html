@@ -1,0 +1,74 @@
+{% extends "adminpanel/base.html" %}
+
+{% block title %}Connexion — Administration{% endblock %}
+
+{% block body %}
+<div class="flex min-h-screen items-center justify-center bg-ink-950 px-4 py-10">
+  <div class="w-full max-w-md">
+    <div class="mb-8 text-center">
+      <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600/20 ring-1 ring-brand-500/40">
+        <span class="font-display text-3xl">⛪</span>
+      </div>
+      <h1 class="font-display text-2xl font-extrabold text-white">Cité de la Miséricorde</h1>
+      <p class="mt-1 text-sm text-ink-400">Espace administration sécurisé</p>
+    </div>
+
+    <div class="rounded-2xl border border-white/10 bg-white p-6 shadow-float sm:p-8">
+      <h2 class="font-display text-lg font-bold text-ink-900">Connexion</h2>
+      <p class="mt-1 text-sm text-ink-500">Identifiez-vous pour gérer le site.</p>
+
+      {% if messages %}
+      <div class="mt-4 space-y-2">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if locked %}
+      <div class="alert alert-error mt-4">
+        Trop de tentatives échouées. Réessayez dans 15 minutes.
+      </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'adminpanel:login' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="mt-5 space-y-4" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-error">
+          {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="field-row">
+          <label class="label label-required" for="{{ form.username.id_for_label }}">Identifiant</label>
+          <input type="text" name="{{ form.username.html_name }}" id="{{ form.username.id_for_label }}"
+                 value="{{ form.username.value|default:'' }}" autocomplete="username" required
+                 class="input {% if form.username.errors %}input-error{% endif %}"
+                 placeholder="Manasse Kamole"
+                 {% if locked %}disabled{% endif %}>
+          {% for error in form.username.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="field-row">
+          <label class="label label-required" for="{{ form.password.id_for_label }}">Mot de passe</label>
+          <input type="password" name="{{ form.password.html_name }}" id="{{ form.password.id_for_label }}"
+                 autocomplete="current-password" required
+                 class="input {% if form.password.errors %}input-error{% endif %}"
+                 placeholder="••••••••"
+                 {% if locked %}disabled{% endif %}>
+          {% for error in form.password.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" {% if locked %}disabled{% endif %}>
+          Se connecter
+        </button>
+      </form>
+    </div>
+
+    <p class="mt-6 text-center text-xs text-ink-500">
+      <a href="{% url 'home' %}" class="text-brand-400 hover:text-brand-300">← Retour au site public</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "adminpanel/base.html" %}
+
+{% block content %}
+<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+  <form method="get" class="flex flex-wrap gap-2">
+    <input type="search" name="q" value="{{ q }}" placeholder="Rechercher…" class="input w-56" aria-label="Rechercher">
+    <select name="status" class="input w-40" aria-label="Statut">
+      <option value="">Tous les statuts</option>
+      <option value="draft" {% if status == 'draft' %}selected{% endif %}>Brouillon</option>
+      <option value="published" {% if status == 'published' %}selected{% endif %}>Publié</option>
+      <option value="archived" {% if status == 'archived' %}selected{% endif %}>Archivé</option>
+    </select>
+    <button type="submit" class="btn btn-outline btn-sm">Filtrer</button>
+  </form>
+  <a href="{% url 'adminpanel:news_create' %}" class="btn btn-primary btn-sm">+ Nouvelle actualité</a>
+</div>
+
+<div class="admin-card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="admin-table">
+      <thead>
+        <tr><th>Titre</th><th>Statut</th><th>Date</th><th>Auteur</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for article in page_obj %}
+        <tr>
+          <td>
+            <p class="font-medium text-ink-900">{{ article.title }}</p>
+            {% if article.categories.all %}
+            <p class="mt-0.5 flex flex-wrap gap-1">
+              {% for c in article.categories.all|slice:":3" %}<span class="badge badge-brand">{{ c.name }}</span>{% endfor %}
+            </p>
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge {% if article.status == 'published' %}badge-green{% elif article.status == 'draft' %}badge-gray{% else %}badge-amber{% endif %}">
+              {{ article.get_status_display }}
+            </span>
+          </td>
+          <td class="whitespace-nowrap text-sm">{{ article.published_at|date:"d/m/Y" }}</td>
+          <td class="text-sm">{{ article.author|default:"—" }}</td>
+          <td class="whitespace-nowrap text-right">
+            <a href="{% url 'adminpanel:news_edit' article.pk %}" class="font-semibold text-brand-700 hover:underline">Modifier</a>
+            <form method="post" action="{% url 'adminpanel:news_delete' article.pk %}" class="ml-3 inline" onsubmit="return confirm('Supprimer cette actualité ?');">
+              {% csrf_token %}
+              <button type="submit" class="font-semibold text-red-600 hover:underline">Supprimer</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="py-10 text-center text-ink-500">Aucune actualité.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% include "adminpanel/partials/pagination.html" %}
+{% endblock %}

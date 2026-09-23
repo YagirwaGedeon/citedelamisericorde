@@ -1,0 +1,169 @@
+{% load static %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'fr' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="NONE,NOARCHIVE">
+  <title>{% block title %}{{ page_title|default:"Administration" }} — Cité de la Miséricorde{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-ink-100 text-ink-800 antialiased min-h-screen">
+{% block body %}
+<a href="#admin-content" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-brand-700 focus:px-4 focus:py-2 focus:text-white">Aller au contenu</a>
+
+<div class="flex min-h-screen">
+  {# ---------- Sidebar ---------- #}
+  <aside id="admin-sidebar"
+         class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col bg-ink-950 text-ink-300 transition-transform duration-200 lg:static lg:translate-x-0">
+    <div class="flex items-center gap-3 border-b border-white/10 px-6 py-5">
+      <img src="{% static 'img/logo.png' %}" alt="" class="h-10 w-10 rounded-xl object-contain bg-white/10">
+      <div class="min-w-0">
+        <p class="truncate font-display text-sm font-bold text-white">Cité de la Miséricorde</p>
+        <p class="text-xs text-ink-400">Espace administration</p>
+      </div>
+      <button type="button" id="sidebar-close" class="ml-auto rounded-lg p-1.5 text-ink-400 hover:bg-white/10 hover:text-white lg:hidden" aria-label="Fermer le menu">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+
+    <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Navigation admin">
+      <a href="{% url 'adminpanel:dashboard' %}"
+         class="nav-item {% if active_section == 'dashboard' %}is-active{% endif %}">
+        <span class="nav-ic" aria-hidden="true">📊</span> Tableau de bord
+      </a>
+      <a href="{% url 'adminpanel:home_list' %}"
+         class="nav-item {% if active_section == 'home' %}is-active{% endif %}">
+        <span class="nav-ic" aria-hidden="true">🏠</span> Publications accueil
+      </a>
+      <a href="{% url 'adminpanel:projects_list' %}"
+         class="nav-item {% if active_section == 'projects' %}is-active{% endif %}">
+        <span class="nav-ic" aria-hidden="true">📁</span> Projets
+      </a>
+      <a href="{% url 'adminpanel:news_list' %}"
+         class="nav-item {% if active_section == 'news' %}is-active{% endif %}">
+        <span class="nav-ic" aria-hidden="true">📰</span> Actualités
+      </a>
+      <a href="{% url 'adminpanel:media_list' %}"
+         class="nav-item {% if active_section == 'media' %}is-active{% endif %}">
+        <span class="nav-ic" aria-hidden="true">🖼</span> Médiathèque
+      </a>
+      <a href="{% url 'adminpanel:profile' %}"
+         class="nav-item {% if active_section == 'profile' %}is-active{% endif %}">
+        <span class="nav-ic" aria-hidden="true">👤</span> Mon profil
+      </a>
+      <a href="{% url 'adminpanel:settings' %}"
+         class="nav-item {% if active_section == 'settings' %}is-active{% endif %}">
+        <span class="nav-ic" aria-hidden="true">⚙</span> Paramètres
+      </a>
+      <a href="{% url 'admin:index' %}" class="nav-item" title="Admin Django classique">
+        <span class="nav-ic" aria-hidden="true">🧭</span> Admin avancée
+      </a>
+      <a href="{% url 'home' %}" class="nav-item" target="_blank" rel="noopener">
+        <span class="nav-ic" aria-hidden="true">🌐</span> Voir le site
+      </a>
+    </nav>
+
+    <div class="border-t border-white/10 p-4">
+      <div class="mb-3 flex items-center gap-3 px-2">
+        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 font-display text-sm font-bold text-white">
+          {{ user.get_short_name|default:user.get_username|first|upper }}
+        </span>
+        <div class="min-w-0">
+          <p class="truncate text-sm font-semibold text-white">{{ user.get_short_name|default:user.get_username }}</p>
+          <p class="truncate text-xs text-ink-400">{{ user.get_role_display|default:user.role }}</p>
+        </div>
+      </div>
+      <form method="post" action="{% url 'adminpanel:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="nav-item w-full justify-start text-red-300 hover:bg-red-500/10 hover:text-red-200">
+          <span class="nav-ic" aria-hidden="true">🚪</span> Déconnexion
+        </button>
+      </form>
+    </div>
+  </aside>
+  <div id="sidebar-backdrop" class="fixed inset-0 z-40 hidden bg-ink-950/50 backdrop-blur-sm lg:hidden"></div>
+
+  {# ---------- Zone principale ---------- #}
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header class="sticky top-0 z-30 flex items-center gap-3 border-b border-ink-200 bg-white/90 px-4 py-3 backdrop-blur sm:px-6">
+      <button type="button" id="sidebar-open" class="rounded-lg border border-ink-200 p-2 text-ink-600 hover:bg-ink-50 lg:hidden" aria-label="Ouvrir le menu">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+      </button>
+      <h1 class="truncate font-display text-lg font-bold text-ink-900">{{ page_title|default:"Administration" }}</h1>
+      <div class="ml-auto flex items-center gap-2">
+        <a href="{% url 'adminpanel:home_create' %}" class="btn btn-primary btn-sm">+ Publication</a>
+      </div>
+    </header>
+
+    <main id="admin-content" class="flex-1 px-4 py-6 sm:px-6 lg:px-8" tabindex="-1">
+      {% if messages %}
+      <div class="mb-5 space-y-2">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} flex items-start justify-between gap-3" role="status">
+          <span>{{ message }}</span>
+          <button type="button" class="toast-close shrink-0 opacity-60 hover:opacity-100" aria-label="Fermer">&times;</button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<style>
+  .nav-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.6rem 0.85rem; border-radius: 0.7rem;
+    font-size: 0.9rem; font-weight: 500; color: #cbd5e1;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .nav-item.is-active { background: rgba(20,184,166,0.15); color: #5eead4; font-weight: 600; }
+  .nav-ic { width: 1.4rem; text-align: center; flex-shrink: 0; }
+  .admin-table { width: 100%; font-size: 0.9rem; border-collapse: collapse; }
+  .admin-table th { text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; padding: 0.7rem 1rem; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+  .admin-table td { padding: 0.85rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; color: #334155; }
+  .admin-table tbody tr:hover { background: #f8fafc; }
+  .admin-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; box-shadow: 0 1px 2px rgb(15 23 42 / 0.04); }
+  .field-row { margin-bottom: 1rem; }
+  .field-hint { font-size: 0.78rem; color: #64748b; margin-top: 0.3rem; }
+  .check-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: #334155; }
+  .check-row input { width: 1rem; height: 1rem; accent-color: #0d9488; }
+  .errorlist { color: #dc2626; font-size: 0.82rem; margin: 0.25rem 0; padding-left: 1rem; list-style: disc; }
+  #id_categories { list-style: none; padding: 0; margin: 0; max-height: 10rem; overflow: auto; border: 1px solid #e2e8f0; border-radius: 0.625rem; padding: 0.5rem; }
+  #id_categories li { padding: 0.2rem 0.3rem; }
+  @media (max-width: 1023px) {
+    #admin-sidebar { box-shadow: 12px 0 32px rgb(15 23 42 / 0.25); }
+    #admin-sidebar.is-open { transform: translateX(0); }
+  }
+</style>
+<script>
+(function () {
+  var sidebar = document.getElementById('admin-sidebar');
+  var backdrop = document.getElementById('sidebar-backdrop');
+  function openNav() { sidebar.classList.add('is-open'); backdrop.classList.remove('hidden'); }
+  function closeNav() { sidebar.classList.remove('is-open'); backdrop.classList.add('hidden'); }
+  var openBtn = document.getElementById('sidebar-open');
+  var closeBtn = document.getElementById('sidebar-close');
+  if (openBtn) openBtn.addEventListener('click', openNav);
+  if (closeBtn) closeBtn.addEventListener('click', closeNav);
+  if (backdrop) backdrop.addEventListener('click', closeNav);
+  document.querySelectorAll('.toast-close').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var t = btn.closest('.alert') || btn.closest('[role="status"]');
+      if (t) t.remove();
+    });
+  });
+})();
+</script>
+{% endblock %}
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

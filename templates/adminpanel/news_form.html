@@ -1,0 +1,42 @@
+{% extends "adminpanel/base.html" %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl">
+  <div class="admin-card p-6 sm:p-8">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="alert alert-error mb-4">{% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}</div>
+      {% endif %}
+
+      {% for field in form %}
+      <div class="field-row {% if field.name == 'content' %}md:col-span-2{% endif %}">
+        {% if field.field.widget.input_type == 'checkbox' %}
+        <label class="check-row">{{ field }} <span>{{ field.label }}</span></label>
+        {% elif field.name == 'categories' %}
+        <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% else %}
+        <label class="label {% if field.field.required %}label-required{% endif %}" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% endif %}
+        {% if field.help_text %}<p class="field-hint">{{ field.help_text }}</p>{% endif %}
+        {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+      </div>
+      {% endfor %}
+
+      <div class="mt-6 flex flex-wrap gap-3 border-t border-ink-100 pt-5">
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <a href="{% url 'adminpanel:news_list' %}" class="btn btn-ghost">Annuler</a>
+      </div>
+    </form>
+    {% if article %}
+    <form method="post" action="{% url 'adminpanel:news_delete' article.pk %}" class="mt-3 border-t border-ink-100 pt-4" onsubmit="return confirm('Supprimer ?');">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger btn-sm">Supprimer l'actualité</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

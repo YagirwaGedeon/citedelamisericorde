@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 
+from apps.adminpanel.models import HomePost
 from apps.articles.models import Article
 from apps.pages.models import Page
 from apps.partners.models import Partner
@@ -45,6 +46,9 @@ def home(request):
         "testimonials": Testimonial.objects.filter(is_published=True, publication_authorized=True)[:3],
         "partners": Partner.objects.filter(is_published=True)[:6],
         "founder": _founder_section(),
+        "home_posts": HomePost.objects.filter(
+            status="published", published_at__lte=timezone.now()
+        ).select_related("image")[:6],
     }
     return render(request, "core/home.html", context)
 
@@ -58,6 +62,7 @@ def robots_txt(request):
     lines = [
         "User-agent: *",
         "Disallow: /admin/",
+        "Disallow: /django-admin/",
         "Allow: /",
         "",
         "Sitemap: {scheme}://{host}/sitemap.xml".format(

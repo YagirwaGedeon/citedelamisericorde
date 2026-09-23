@@ -1,0 +1,39 @@
+{% extends "adminpanel/base.html" %}
+
+{% block content %}
+<div class="grid max-w-4xl gap-6 lg:grid-cols-2">
+  <section class="admin-card p-6 sm:p-7">
+    <h2 class="font-display text-base font-bold text-ink-900">Informations du compte</h2>
+    <p class="mt-1 text-xs text-ink-500">Identifiant de connexion : <strong>{{ user.username }}</strong></p>
+
+    <form method="post" class="mt-5" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="field-row">
+        <label class="label {% if field.field.required %}label-required{% endif %}" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary btn-sm">Enregistrer le profil</button>
+    </form>
+  </section>
+
+  <section class="admin-card p-6 sm:p-7">
+    <h2 class="font-display text-base font-bold text-ink-900">Changer le mot de passe</h2>
+    <p class="mt-1 text-xs text-ink-500">Stocké uniquement sous forme de hash (jamais en clair).</p>
+
+    <form method="post" class="mt-5" novalidate>
+      {% csrf_token %}
+      {% for field in pwd_form %}
+      <div class="field-row">
+        <label class="label label-required" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-outline btn-sm">Modifier le mot de passe</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

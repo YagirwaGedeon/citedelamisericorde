@@ -1,0 +1,16 @@
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="mt-5 flex items-center justify-between gap-3 text-sm" aria-label="Pagination">
+  <span class="text-ink-500">
+    Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+    ({{ page_obj.paginator.count }} résultat{{ page_obj.paginator.count|pluralize }})
+  </span>
+  <div class="flex gap-2">
+    {% if page_obj.has_previous %}
+    <a class="btn btn-outline btn-sm" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if kind %}&kind={{ kind }}{% endif %}">← Précédent</a>
+    {% endif %}
+    {% if page_obj.has_next %}
+    <a class="btn btn-outline btn-sm" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if kind %}&kind={{ kind }}{% endif %}">Suivant →</a>
+    {% endif %}
+  </div>
+</nav>
+{% endif %}
