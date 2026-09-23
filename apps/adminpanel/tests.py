@@ -78,6 +78,23 @@ class AdminPanelTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, "Quitter l’option avancée")
 
+    def test_responsive_sidebar_controls(self):
+        self.client.login(username="Manasse Kamole", password="Manasse2026")
+        r = self.client.get("/admin/dashboard/")
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'id="admin-sidebar"')
+        self.assertContains(r, 'id="sidebar-open"')
+        self.assertContains(r, 'id="sidebar-close"')
+        self.assertContains(r, 'id="sidebar-collapse"')
+        self.assertContains(r, 'id="sidebar-expand"')
+        self.assertContains(r, 'id="sidebar-toggle-desktop"')
+        self.assertContains(r, "admin-sidebar is-open")
+        self.assertContains(r, "sidebar-collapsed")
+        # Contrôles sur les autres pages admin aussi
+        for path in ("/admin/home/", "/admin/projects/", "/admin/news/", "/admin/media/"):
+            r = self.client.get(path)
+            self.assertContains(r, 'id="admin-sidebar"', html=False, count=None)
+
     def test_password_is_hashed_not_plaintext(self):
         user = User.objects.get(username="Manasse Kamole")
         self.assertNotIn("Manasse2026", user.password)
