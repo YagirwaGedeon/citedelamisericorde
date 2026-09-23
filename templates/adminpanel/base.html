@@ -69,6 +69,12 @@
         <span class="nav-ic" aria-hidden="true">🖼</span>
         <span class="nav-label">Médiathèque</span>
       </a>
+      <a href="{% url 'adminpanel:analytics' %}"
+         class="nav-item {% if active_section == 'analytics' %}is-active{% endif %}"
+         title="Analytics">
+        <span class="nav-ic" aria-hidden="true">📈</span>
+        <span class="nav-label">Analytics</span>
+      </a>
 
       <p class="sidebar-label sidebar-label-gap">Compte</p>
       <a href="{% url 'adminpanel:profile' %}"

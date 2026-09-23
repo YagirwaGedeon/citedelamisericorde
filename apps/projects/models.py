@@ -64,6 +64,7 @@ class Project(SlugModel, TimeStampedModel):
     )
     needs_donation = models.BooleanField("Accepte les dons ciblés", default=False)
     seo_description = models.CharField("Description SEO", max_length=300, blank=True)
+    views = models.PositiveBigIntegerField("Vues", default=0, editable=False)
 
     class Meta:
         verbose_name = "projet"

@@ -1,0 +1,398 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block content %}
+{# ---------- Hero analytics ---------- #}
+<section class="admin-card overflow-hidden">
+  <div class="border-b border-ink-100 bg-gradient-to-br from-brand-700 via-brand-800 to-ink-950 px-5 py-6 sm:px-6">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div class="min-w-0">
+        <p class="text-xs font-semibold uppercase tracking-widest text-brand-200/80">Statistiques du site</p>
+        <h2 class="mt-1 font-display text-xl font-extrabold text-white sm:text-2xl">Analytics</h2>
+        <p class="mt-1 max-w-2xl text-sm text-brand-100/80">
+          Lectures d’articles, pages vues, pays des visiteurs et tendances — mises à jour à chaque visite.
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <a href="?days=7"
+           class="btn btn-sm {% if days == 7 %}btn-primary{% else %}border border-white/25 bg-white/10 text-white hover:bg-white/20{% endif %}">
+          7 j
+        </a>
+        <a href="?days=30"
+           class="btn btn-sm {% if days == 30 %}btn-primary{% else %}border border-white/25 bg-white/10 text-white hover:bg-white/20{% endif %}">
+          30 j
+        </a>
+        <a href="?days=90"
+           class="btn btn-sm {% if days == 90 %}btn-primary{% else %}border border-white/25 bg-white/10 text-white hover:bg-white/20{% endif %}">
+          90 j
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid gap-4 px-5 py-5 sm:grid-cols-2 sm:px-6 xl:grid-cols-4">
+    {% for kpi in kpis %}
+    <div class="rounded-xl border border-ink-100 bg-ink-50 p-4">
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-ink-400">{{ kpi.label }}</p>
+          <p class="mt-1.5 font-display text-2xl font-extrabold text-ink-900">{{ kpi.value }}</p>
+          <p class="mt-0.5 text-xs text-ink-500">{{ kpi.hint }}</p>
+        </div>
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-lg">{{ kpi.icon }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+{# ---------- Graphiques principaux ---------- #}
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+  <section class="admin-card overflow-hidden lg:col-span-2">
+    <header class="flex flex-wrap items-center justify-between gap-2 border-b border-ink-100 px-5 py-4">
+      <div>
+        <h2 class="font-display text-sm font-bold text-ink-900">Tendance des visites</h2>
+        <p class="text-xs text-ink-500">Pages vues par jour — {{ days }} derniers jours</p>
+      </div>
+      <span class="badge badge-green">Live</span>
+    </header>
+    <div class="p-4 sm:p-5">
+      <div class="relative h-72">
+        <canvas id="chart-visits" aria-label="Graphique des visites" role="img"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-card overflow-hidden">
+    <header class="border-b border-ink-100 px-5 py-4">
+      <h2 class="font-display text-sm font-bold text-ink-900">Articles les plus lus</h2>
+      <p class="text-xs text-ink-500">Lectures sur la période (actualités)</p>
+    </header>
+    <div class="p-4 sm:p-5">
+      <div class="relative h-80">
+        <canvas id="chart-articles" aria-label="Articles les plus lus" role="img"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-card overflow-hidden">
+    <header class="border-b border-ink-100 px-5 py-4">
+      <h2 class="font-display text-sm font-bold text-ink-900">Pays des visiteurs</h2>
+      <p class="text-xs text-ink-500">Répartition géographique (GeoIP / langue)</p>
+    </header>
+    <div class="p-4 sm:p-5">
+      <div class="relative h-80">
+        <canvas id="chart-countries" aria-label="Pays des visiteurs" role="img"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-card overflow-hidden">
+    <header class="border-b border-ink-100 px-5 py-4">
+      <h2 class="font-display text-sm font-bold text-ink-900">Pages les plus visitées</h2>
+      <p class="text-xs text-ink-500">Top chemins du site</p>
+    </header>
+    <div class="p-4 sm:p-5">
+      <div class="relative h-80">
+        <canvas id="chart-pages" aria-label="Pages les plus visitées" role="img"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-card overflow-hidden">
+    <header class="border-b border-ink-100 px-5 py-4">
+      <h2 class="font-display text-sm font-bold text-ink-900">Projets les plus vus</h2>
+      <p class="text-xs text-ink-500">Cumul des vues fiches projet</p>
+    </header>
+    <div class="p-4 sm:p-5">
+      <div class="relative h-80">
+        <canvas id="chart-projects" aria-label="Projets les plus vus" role="img"></canvas>
+      </div>
+    </div>
+  </section>
+</div>
+
+{# ---------- Tableaux détaillés ---------- #}
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+  <section class="admin-card overflow-hidden">
+    <header class="flex items-center justify-between border-b border-ink-100 px-5 py-4">
+      <h2 class="font-display text-sm font-bold text-ink-900">Articles — classement lectures</h2>
+      <a href="{% url 'adminpanel:news_list' %}" class="text-xs font-semibold text-brand-700 hover:underline">Gérer</a>
+    </header>
+    <div class="overflow-x-auto">
+      <table class="admin-table">
+        <thead>
+          <tr><th>#</th><th>Article</th><th>Période</th><th>Total</th></tr>
+        </thead>
+        <tbody>
+          {% for art in top_articles %}
+          <tr>
+            <td class="text-ink-400">{{ forloop.counter }}</td>
+            <td class="font-medium text-ink-900">{{ art.title }}</td>
+            <td>
+              <span class="badge badge-green">{{ art.period_reads }}</span>
+            </td>
+            <td class="font-semibold text-ink-700">{{ art.views }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="py-6 text-center text-ink-500">Aucun article publié.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="admin-card overflow-hidden">
+    <header class="border-b border-ink-100 px-5 py-4">
+      <h2 class="font-display text-sm font-bold text-ink-900">Pays — détail</h2>
+    </header>
+    <div class="overflow-x-auto">
+      <table class="admin-table">
+        <thead>
+          <tr><th>Pays</th><th>Visites</th><th>Part</th></tr>
+        </thead>
+        <tbody>
+          {% for c in country_rows %}
+          <tr>
+            <td class="font-medium text-ink-900">{{ c.country }}</td>
+            <td>{{ c.n }}</td>
+            <td>
+              {% widthratio c.n total_views 100 as pct %}
+              <div class="progress w-28"><div style="width: {% if pct > 100 %}100{% else %}{{ pct }}{% endif %}%"></div></div>
+              <span class="text-xs text-ink-500">{% widthratio c.n total_views 100 %} %</span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="py-6 text-center text-ink-500">Aucune donnée de pays pour l’instant.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="admin-card overflow-hidden lg:col-span-2">
+    <header class="border-b border-ink-100 px-5 py-4">
+      <h2 class="font-display text-sm font-bold text-ink-900">Origines (referrer)</h2>
+      <p class="text-xs text-ink-500">D’où viennent les visiteurs</p>
+    </header>
+    <ul class="divide-y divide-ink-100">
+      {% for r in top_referrers %}
+      <li class="flex items-center justify-between gap-3 px-5 py-3">
+        <span class="truncate text-sm text-ink-700">{{ r.label }}</span>
+        <span class="badge badge-gray">{{ r.n }}</span>
+      </li>
+      {% empty %}
+      <li class="px-5 py-6 text-sm text-ink-500">Trafic direct uniquement (pas de referrer externe).</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  if (typeof Chart === 'undefined') return;
+
+  Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+  Chart.defaults.color = '#64748b';
+  Chart.defaults.borderColor = '#e2e8f0';
+
+  var teal = '#0f766e';
+  var tealLight = '#14b8a6';
+  var amber = '#f59e0b';
+  var palette = [
+    '#0f766e', '#14b8a6', '#f59e0b', '#0ea5e9', '#8b5cf6',
+    '#ef4444', '#22c55e', '#ec4899', '#6366f1', '#14b8a6',
+    '#f97316', '#06b6d4'
+  ];
+
+  var visitsLabels = {{ chart.labels|safe }};
+  var visitsData = {{ chart.visits|safe }};
+
+  var ctxV = document.getElementById('chart-visits');
+  if (ctxV) {
+    var g = ctxV.getContext('2d').createLinearGradient(0, 0, 0, 280);
+    g.addColorStop(0, 'rgba(20, 184, 166, 0.35)');
+    g.addColorStop(1, 'rgba(20, 184, 166, 0.02)');
+    new Chart(ctxV, {
+      type: 'line',
+      data: {
+        labels: visitsLabels,
+        datasets: [{
+          label: 'Visites',
+          data: visitsData,
+          borderColor: teal,
+          backgroundColor: g,
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2.5,
+          pointRadius: visitsLabels.length > 40 ? 0 : 3,
+          pointHoverRadius: 5,
+          pointBackgroundColor: teal
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#020617',
+            padding: 10,
+            cornerRadius: 8,
+            titleFont: { weight: '600' }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 14, maxRotation: 0 } },
+          y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } }
+        }
+      }
+    });
+  }
+
+  var artLabels = {{ chart.article_labels|safe }};
+  var artData = {{ chart.article_values|safe }};
+  var ctxA = document.getElementById('chart-articles');
+  if (ctxA) {
+    new Chart(ctxA, {
+      type: 'bar',
+      data: {
+        labels: artLabels,
+        datasets: [{
+          label: 'Lectures',
+          data: artData,
+          backgroundColor: tealLight,
+          hoverBackgroundColor: teal,
+          borderRadius: 6,
+          borderSkipped: false,
+          maxBarThickness: 28
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { backgroundColor: '#020617', padding: 10, cornerRadius: 8 }
+        },
+        scales: {
+          x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } },
+          y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+        }
+      }
+    });
+  }
+
+  var cLabels = {{ chart.country_labels|safe }};
+  var cData = {{ chart.country_values|safe }};
+  var ctxC = document.getElementById('chart-countries');
+  if (ctxC) {
+    new Chart(ctxC, {
+      type: 'doughnut',
+      data: {
+        labels: cLabels.length ? cLabels : ['Aucune donnée'],
+        datasets: [{
+          data: cData.length ? cData : [1],
+          backgroundColor: cLabels.length ? palette : ['#e2e8f0'],
+          borderWidth: 2,
+          borderColor: '#ffffff',
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '62%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { boxWidth: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } }
+          },
+          tooltip: { backgroundColor: '#020617', padding: 10, cornerRadius: 8 }
+        }
+      }
+    });
+  }
+
+  var pLabels = {{ chart.page_labels|safe }};
+  var pData = {{ chart.page_values|safe }};
+  var ctxP = document.getElementById('chart-pages');
+  if (ctxP) {
+    new Chart(ctxP, {
+      type: 'bar',
+      data: {
+        labels: pLabels,
+        datasets: [{
+          label: 'Vues',
+          data: pData,
+          backgroundColor: function (c) {
+            var chart = c.chart;
+            var i = c.dataIndex;
+            var n = chart.data.labels.length;
+            var t = n > 1 ? i / (n - 1) : 0;
+            return Chart.helpers && Chart.helpers.gradient
+              ? teal
+              : 'rgba(15, 118, 110,' + (1 - t * 0.55) + ')';
+          },
+          borderRadius: 6,
+          borderSkipped: false,
+          maxBarThickness: 32
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { backgroundColor: '#020617', padding: 10, cornerRadius: 8 }
+        },
+        scales: {
+          x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } },
+          y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+        }
+      }
+    });
+  }
+
+  var prLabels = {{ chart.project_labels|safe }};
+  var prData = {{ chart.project_values|safe }};
+  var ctxPr = document.getElementById('chart-projects');
+  if (ctxPr) {
+    new Chart(ctxPr, {
+      type: 'bar',
+      data: {
+        labels: prLabels,
+        datasets: [{
+          label: 'Vues',
+          data: prData,
+          backgroundColor: amber,
+          hoverBackgroundColor: '#d97706',
+          borderRadius: 6,
+          borderSkipped: false,
+          maxBarThickness: 32
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { backgroundColor: '#020617', padding: 10, cornerRadius: 8 }
+        },
+        scales: {
+          x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } },
+          y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+        }
+      }
+    });
+  }
+})();
+</script>
+{% endblock %}

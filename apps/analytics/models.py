@@ -9,9 +9,16 @@ class PageView(TimeStampedModel):
     """Enregistrement minimal d'une visite de page (privacy-friendly)."""
 
     path = models.CharField("Chemin", max_length=500, db_index=True)
-    country = models.CharField("Pays (via GeoIP, optionnel)", max_length=100, blank=True)
+    country = models.CharField(
+        "Pays", max_length=100, blank=True, db_index=True,
+        help_text="Via GeoIP2 si configuré, sinon Accept-Language.",
+    )
     referrer = models.CharField("Origine (referrer)", max_length=500, blank=True)
     is_bot = models.BooleanField("Robot détecté", default=False)
+    visitor_key = models.CharField(
+        "Visiteur (hash)", max_length=64, blank=True, db_index=True,
+        help_text="Hash IP+UA pour visiteurs uniques (pas d’IP en clair).",
+    )
 
     class Meta:
         verbose_name = "vue de page"
@@ -20,6 +27,8 @@ class PageView(TimeStampedModel):
         indexes = [
             models.Index(fields=["created_at"]),
             models.Index(fields=["path", "created_at"]),
+            models.Index(fields=["country", "created_at"]),
+            models.Index(fields=["visitor_key", "created_at"]),
         ]
 
     def __str__(self):

@@ -32,6 +32,10 @@ def project_detail(request, slug):
         Project.objects.select_related("status", "program").prefetch_related("gallery"),
         slug=slug,
     )
+    from django.db.models import F
+
+    Project.objects.filter(pk=project.pk).update(views=F("views") + 1)
+    project.refresh_from_db(fields=["views"])
     related = Project.objects.exclude(pk=project.pk)[:3]
     return render(
         request,

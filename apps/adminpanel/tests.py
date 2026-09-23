@@ -41,6 +41,7 @@ class AdminPanelTests(TestCase):
             "/admin/media/",
             "/admin/profile/",
             "/admin/settings/",
+            "/admin/analytics/",
         ):
             r = self.client.get(path)
             self.assertEqual(r.status_code, 302, path)
@@ -77,6 +78,22 @@ class AdminPanelTests(TestCase):
         r = self.client.get("/django-admin/")
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, "Quitter l’option avancée")
+
+    def test_analytics_page_and_sidebar(self):
+        self.client.login(username="Manasse Kamole", password="Manasse2026")
+        r = self.client.get("/admin/analytics/")
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "Analytics")
+        self.assertContains(r, "Articles les plus lus")
+        self.assertContains(r, "Pays des visiteurs")
+        self.assertContains(r, "Tendance des visites")
+        self.assertContains(r, "chart-visits")
+        self.assertContains(r, "chart-articles")
+        self.assertContains(r, "chart-countries")
+        self.assertContains(r, "chart.js")
+        self.assertContains(r, 'class="nav-item is-active"')
+        r = self.client.get("/admin/dashboard/")
+        self.assertContains(r, "Analytics")
 
     def test_responsive_sidebar_controls(self):
         self.client.login(username="Manasse Kamole", password="Manasse2026")

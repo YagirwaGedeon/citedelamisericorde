@@ -1,5 +1,6 @@
 """Vues de l'espace administration (/admin/*)."""
 
+from datetime import timedelta
 from hashlib import sha256
 
 from django.conf import settings
@@ -8,7 +9,8 @@ from django.contrib.auth import login as auth_login, logout as auth_logout, upda
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.paginator import Paginator
-from django.db.models import Q, Sum
+from django.db.models import Count, Q, Sum
+from django.db.models.functions import TruncDate
 from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -123,6 +125,8 @@ def dashboard(request):
         {"label": "Médias", "value": MediaItem.objects.count(), "hint": "fichiers", "icon": "🖼"},
         {"label": "Messages non lus", "value": ContactMessage.objects.filter(is_read=False, is_spam=False).count(), "hint": "contact", "icon": "✉"},
         {"label": "Visiteurs aujourd'hui", "value": PageView.objects.filter(created_at__gte=today_start, is_bot=False).count(), "hint": "analytics", "icon": "👥"},
+        {"label": "Lectures articles", "value": Article.objects.aggregate(t=Sum("views"))["t"] or 0, "hint": "cumul vues", "icon": "📖"},
+        {"label": "Pages vues (30j)", "value": PageView.objects.filter(created_at__gte=today_start - timedelta(days=29), is_bot=False).count(), "hint": "trafic", "icon": "📈"},
         {"label": "Dons réussis (USD)", "value": f"{float(total_donations):,.2f}".replace(",", " "), "hint": "cumul", "icon": "💛"},
         {"label": "Donateurs", "value": Donor.objects.count(), "hint": "en base", "icon": "🤝"},
     ]
@@ -516,3 +520,187 @@ def api_media_options(request):
     return JsonResponse(
         {"results": [{"id": i.pk, "label": str(i)} for i in items]}
     )
+
+
+# ---------------------------------------------------------------- Analytics
+@staff_login_required
+def analytics_view(request):
+    """Tableau de bord analytics : lectures d'articles, pays, tendances."""
+    now = timezone.now()
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    days = max(1, min(90, int(request.GET.get("days", 30) or 30)))
+    since = today_start - timedelta(days=days - 1)
+
+    views_qs = PageView.objects.filter(created_at__gte=since, is_bot=False)
+
+    total_views = views_qs.count()
+    unique_visitors = (
+        views_qs.exclude(visitor_key="").values("visitor_key").distinct().count()
+        or views_qs.count()
+    )
+    today_views = PageView.objects.filter(
+        created_at__gte=today_start, is_bot=False
+    ).count()
+
+    # Visites par jour (serie tendance)
+    daily_rows = (
+        views_qs.annotate(d=TruncDate("created_at"))
+        .values("d")
+        .annotate(n=Count("id"))
+        .order_by("d")
+    )
+    by_day = {row["d"]: row["n"] for row in daily_rows}
+    labels = []
+    visit_series = []
+    cursor = since.date()
+    end = today_start.date()
+    while cursor <= end:
+        labels.append(cursor.strftime("%d/%m"))
+        visit_series.append(by_day.get(cursor, 0))
+        cursor += timedelta(days=1)
+
+    # Top pages
+    top_pages = list(
+        views_qs.values("path").annotate(n=Count("id")).order_by("-n")[:10]
+    )
+    for row in top_pages:
+        row["label"] = row["path"] or "/"
+
+    # Top pays
+    country_rows = list(
+        views_qs.exclude(country="")
+        .values("country")
+        .annotate(n=Count("id"))
+        .order_by("-n")[:12]
+    )
+
+    # Articles les plus lus (compteur Article.views + lectures via PageView)
+    top_articles = list(
+        Article.objects.filter(status="published")
+        .order_by("-views", "-published_at")
+        .values("pk", "title", "views", "slug")[:10]
+    )
+    for art in top_articles:
+        art["reads"] = (
+            views_qs.filter(path=f"/actualites/{art['slug']}/").count() or art["views"]
+        )
+        art["period_reads"] = views_qs.filter(
+            path=f"/actualites/{art['slug']}/"
+        ).count()
+
+    # Articles lus au moins une fois (période + total)
+    articles_read_period = (
+        views_qs.filter(path__startswith="/actualites/")
+        .values("path")
+        .distinct()
+        .count()
+    )
+    articles_total_reads = Article.objects.aggregate(t=Sum("views"))["t"] or 0
+    articles_unread = Article.objects.filter(status="published", views=0).count()
+
+    # Projets les plus vus
+    top_projects = list(
+        Project.objects.order_by("-views").values("pk", "title", "views", "slug")[:8]
+    )
+
+    # Referrers
+    top_referrers = list(
+        views_qs.exclude(referrer="")
+        .exclude(referrer__iregex=r"citedelamisericorde|localhost|127\\.0\\.0\\.1")
+        .values("referrer")
+        .annotate(n=Count("id"))
+        .order_by("-n")[:8]
+    )
+    for row in top_referrers:
+        host = row["referrer"]
+        try:
+            from urllib.parse import urlparse
+
+            host = urlparse(row["referrer"]).netloc or row["referrer"]
+        except Exception:  # noqa: BLE001
+            pass
+        row["label"] = host[:60]
+
+    kpis = [
+        {
+            "label": "Pages vues",
+            "value": f"{total_views:,}".replace(",", " "),
+            "hint": f"{days} derniers jours",
+            "icon": "👁",
+        },
+        {
+            "label": "Visiteurs uniques",
+            "value": f"{unique_visitors:,}".replace(",", " "),
+            "hint": "estimation hashée",
+            "icon": "👥",
+        },
+        {
+            "label": "Visites aujourd’hui",
+            "value": today_views,
+            "hint": "depuis minuit",
+            "icon": "📈",
+        },
+        {
+            "label": "Articles lus (période)",
+            "value": articles_read_period,
+            "hint": "actualités distinctes",
+            "icon": "📖",
+        },
+        {
+            "label": "Lectures totales articles",
+            "value": f"{articles_total_reads:,}".replace(",", " "),
+            "hint": "cumul Article.views",
+            "icon": "📰",
+        },
+        {
+            "label": "Articles non lus",
+            "value": articles_unread,
+            "hint": "publiés, 0 vue",
+            "icon": "✏",
+        },
+        {
+            "label": "Pays détectés",
+            "value": len(country_rows),
+            "hint": "origine visiteurs",
+            "icon": "🌍",
+        },
+        {
+            "label": "Pays n°1",
+            "value": country_rows[0]["country"] if country_rows else "—",
+            "hint": "le plus représenté",
+            "icon": "🏳",
+        },
+    ]
+
+    import json
+
+    context = {
+        "page_title": "Analytics",
+        "active_section": "analytics",
+        "kpis": kpis,
+        "days": days,
+        "chart": {
+            "labels": json.dumps(labels),
+            "visits": json.dumps(visit_series),
+            "article_labels": json.dumps(
+                [(a["title"][:40] + ("…" if len(a["title"]) > 40 else "")) for a in top_articles]
+            ),
+            "article_values": json.dumps([a["period_reads"] for a in top_articles]),
+            "country_labels": json.dumps([c["country"] for c in country_rows]),
+            "country_values": json.dumps([c["n"] for c in country_rows]),
+            "page_labels": json.dumps([p["label"] for p in top_pages]),
+            "page_values": json.dumps([p["n"] for p in top_pages]),
+            "project_labels": json.dumps(
+                [(p["title"][:40] + ("…" if len(p["title"]) > 40 else "")) for p in top_projects]
+            ),
+            "project_values": json.dumps([p["views"] for p in top_projects]),
+        },
+        "top_articles": top_articles,
+        "top_projects": top_projects,
+        "country_rows": country_rows,
+        "top_pages": top_pages,
+        "top_referrers": top_referrers,
+        "total_views": total_views,
+        "unique_visitors": unique_visitors,
+    }
+    return render(request, "adminpanel/analytics.html", context)
