@@ -76,7 +76,7 @@ def login_view(request):
         cache.delete(_login_fail_key(ip))
         auth_login(request, user)
         messages.success(request, f"Bienvenue, {user.get_full_name() or user.username} !")
-        next_url = request.GET.get(settings.LOGIN_REDIRECT_FIELD_NAME) or request.POST.get("next")
+        next_url = request.GET.get("next") or request.POST.get("next")
         if next_url and next_url.startswith("/") and not next_url.startswith("//"):
             return redirect(next_url)
         return redirect("adminpanel:dashboard")

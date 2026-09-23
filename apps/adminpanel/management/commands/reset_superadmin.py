@@ -24,9 +24,9 @@ class Command(BaseCommand):
             )
 
         username = "Manasse Kamole"
-        password = os.environ.get("ADMIN_INITIAL_PASSWORD") or "Manasse2026"
-        if len(password) < 8:
-            password = "Manasse2026"
+        # Toujours le mot de passe imposé (jamais ADMIN_INITIAL_PASSWORD
+        # qui peut être défini différemment sur PythonAnywhere).
+        password = "Manasse2026"
 
         user, created = User.objects.get_or_create(
             username=username,
