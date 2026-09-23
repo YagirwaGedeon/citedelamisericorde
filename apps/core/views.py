@@ -36,6 +36,15 @@ def _founder_section():
 
 def home(request):
     """Page d'accueil (§12–16)."""
+    try:
+        home_posts = list(
+            HomePost.objects.filter(
+                status="published", published_at__lte=timezone.now()
+            ).select_related("image")[:6]
+        )
+    except Exception:
+        # Table absente (migration non encore appliquée) : ne jamais casser l'accueil.
+        home_posts = []
     context = {
         "programs": Program.objects.filter(is_active=True)[:4],
         "featured_projects": Project.objects.select_related("status").filter(is_featured=True)[:3],
@@ -46,9 +55,7 @@ def home(request):
         "testimonials": Testimonial.objects.filter(is_published=True, publication_authorized=True)[:3],
         "partners": Partner.objects.filter(is_published=True)[:6],
         "founder": _founder_section(),
-        "home_posts": HomePost.objects.filter(
-            status="published", published_at__lte=timezone.now()
-        ).select_related("image")[:6],
+        "home_posts": home_posts,
     }
     return render(request, "core/home.html", context)
 
