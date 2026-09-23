@@ -117,14 +117,14 @@ def dashboard(request):
         Donation.objects.filter(status="SUCCEEDED").aggregate(total=Sum("amount"))["total"] or 0
     )
     kpis = [
-        {"label": "Publications", "value": HomePost.objects.count(), "hint": "accueil"},
-        {"label": "Projets", "value": Project.objects.count(), "hint": "au total"},
-        {"label": "Actualités", "value": Article.objects.filter(status="published").count(), "hint": "publiées"},
-        {"label": "Médias", "value": MediaItem.objects.count(), "hint": "fichiers"},
-        {"label": "Messages non lus", "value": ContactMessage.objects.filter(is_read=False, is_spam=False).count(), "hint": "contact"},
-        {"label": "Visiteurs aujourd'hui", "value": PageView.objects.filter(created_at__gte=today_start, is_bot=False).count(), "hint": "analytics"},
-        {"label": "Dons réussis (USD)", "value": f"{float(total_donations):,.2f}".replace(",", " "), "hint": "cumul"},
-        {"label": "Donateurs", "value": Donor.objects.count(), "hint": "en base"},
+        {"label": "Publications", "value": HomePost.objects.count(), "hint": "accueil", "icon": "🏠"},
+        {"label": "Projets", "value": Project.objects.count(), "hint": "au total", "icon": "📁"},
+        {"label": "Actualités", "value": Article.objects.filter(status="published").count(), "hint": "publiées", "icon": "📰"},
+        {"label": "Médias", "value": MediaItem.objects.count(), "hint": "fichiers", "icon": "🖼"},
+        {"label": "Messages non lus", "value": ContactMessage.objects.filter(is_read=False, is_spam=False).count(), "hint": "contact", "icon": "✉"},
+        {"label": "Visiteurs aujourd'hui", "value": PageView.objects.filter(created_at__gte=today_start, is_bot=False).count(), "hint": "analytics", "icon": "👥"},
+        {"label": "Dons réussis (USD)", "value": f"{float(total_donations):,.2f}".replace(",", " "), "hint": "cumul", "icon": "💛"},
+        {"label": "Donateurs", "value": Donor.objects.count(), "hint": "en base", "icon": "🤝"},
     ]
     context = {
         "page_title": "Tableau de bord",

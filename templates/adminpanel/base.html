@@ -60,7 +60,7 @@
          class="nav-item {% if active_section == 'settings' %}is-active{% endif %}">
         <span class="nav-ic" aria-hidden="true">⚙</span> Paramètres
       </a>
-      <a href="{% url 'admin:index' %}" class="nav-item" title="Admin Django classique">
+      <a href="{% url 'admin:index' %}" class="nav-item" title="Admin Django classique — Quitter via le lien en haut de l’admin">
         <span class="nav-ic" aria-hidden="true">🧭</span> Admin avancée
       </a>
       <a href="{% url 'home' %}" class="nav-item" target="_blank" rel="noopener">
@@ -97,6 +97,8 @@
       <h1 class="truncate font-display text-lg font-bold text-ink-900">{{ page_title|default:"Administration" }}</h1>
       <div class="ml-auto flex items-center gap-2">
         <a href="{% url 'adminpanel:home_create' %}" class="btn btn-primary btn-sm">+ Publication</a>
+        <a href="{% url 'adminpanel:news_create' %}" class="btn btn-outline btn-sm hidden sm:inline-flex">+ Actualité</a>
+        <a href="{% url 'adminpanel:project_create' %}" class="btn btn-outline btn-sm hidden md:inline-flex">+ Projet</a>
       </div>
     </header>
 

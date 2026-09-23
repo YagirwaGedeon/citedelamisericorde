@@ -1,27 +1,134 @@
 {% extends "adminpanel/base.html" %}
 
 {% block content %}
-<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+{# ---------- Accueil + actions rapides ---------- #}
+<section class="admin-card overflow-hidden">
+  <div class="border-b border-ink-100 bg-gradient-to-br from-brand-700 via-brand-800 to-ink-950 px-5 py-6 sm:px-6 sm:py-7">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div class="min-w-0">
+        <p class="text-xs font-semibold uppercase tracking-widest text-brand-200/80">Espace administration</p>
+        <h2 class="mt-1 font-display text-xl font-extrabold text-white sm:text-2xl">
+          Bonjour, {{ user.get_short_name|default:user.get_username }}
+        </h2>
+        <p class="mt-1 max-w-xl text-sm text-brand-100/80">
+          Créez rapidement un contenu ou ouvrez les options avancées pour piloter le site.
+        </p>
+      </div>
+      <div class="flex shrink-0 gap-2">
+        <button type="button" id="btn-advanced-open" class="btn btn-sm border border-white/25 bg-white/10 text-white hover:bg-white/20">
+          Options avancées
+        </button>
+        <a href="{% url 'home' %}" target="_blank" rel="noopener" class="btn btn-sm border border-white/25 bg-white/10 text-white hover:bg-white/20">
+          Voir le site
+        </a>
+      </div>
+    </div>
+
+    <div class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <a href="{% url 'adminpanel:news_create' %}" class="group flex items-start gap-3 rounded-xl border border-white/15 bg-white/10 p-4 backdrop-blur transition hover:border-brand-300/50 hover:bg-white/15">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-500/25 text-lg">📰</span>
+        <span class="min-w-0">
+          <span class="block font-display text-sm font-bold text-white">Nouvelle actualité</span>
+          <span class="mt-0.5 block text-xs text-brand-100/70">Article / annonce du jour</span>
+        </span>
+      </a>
+      <a href="{% url 'adminpanel:project_create' %}" class="group flex items-start gap-3 rounded-xl border border-white/15 bg-white/10 p-4 backdrop-blur transition hover:border-brand-300/50 hover:bg-white/15">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-500/25 text-lg">📁</span>
+        <span class="min-w-0">
+          <span class="block font-display text-sm font-bold text-white">Nouveau projet</span>
+          <span class="mt-0.5 block text-xs text-brand-100/70">Programme & progression</span>
+        </span>
+      </a>
+      <a href="{% url 'adminpanel:home_create' %}" class="group flex items-start gap-3 rounded-xl border border-white/15 bg-white/10 p-4 backdrop-blur transition hover:border-brand-300/50 hover:bg-white/15">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-500/25 text-lg">🏠</span>
+        <span class="min-w-0">
+          <span class="block font-display text-sm font-bold text-white">Publication accueil</span>
+          <span class="mt-0.5 block text-xs text-brand-100/70">Carte sur la page d’accueil</span>
+        </span>
+      </a>
+      <a href="{% url 'adminpanel:media_upload' %}" class="group flex items-start gap-3 rounded-xl border border-white/15 bg-white/10 p-4 backdrop-blur transition hover:border-brand-300/50 hover:bg-white/15">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-500/25 text-lg">🖼</span>
+        <span class="min-w-0">
+          <span class="block font-display text-sm font-bold text-white">Importer un média</span>
+          <span class="mt-0.5 block text-xs text-brand-100/70">Image optimisée</span>
+        </span>
+      </a>
+    </div>
+  </div>
+
+  {# ---------- Panneau options avancées (repliable / quittable) ---------- #}
+  <div id="advanced-panel" class="hidden border-t border-ink-100 bg-ink-50 px-5 py-5 sm:px-6" hidden>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h3 class="font-display text-sm font-bold text-ink-900">Options avancées</h3>
+        <p class="mt-0.5 text-xs text-ink-500">Administration Django complète — vous pouvez quitter à tout moment.</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <a href="{% url 'admin:index' %}" class="btn btn-outline btn-sm">Ouvrir l’admin avancée</a>
+        <a href="{% url 'adminpanel:settings' %}" class="btn btn-outline btn-sm">Paramètres</a>
+        <a href="{% url 'adminpanel:profile' %}" class="btn btn-outline btn-sm">Profil</a>
+        <button type="button" id="btn-advanced-close" class="btn btn-primary btn-sm" aria-controls="advanced-panel">
+          Quitter l’option avancée
+        </button>
+      </div>
+    </div>
+    <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <a href="{% url 'admin:index' %}" class="admin-card flex items-center gap-3 p-4 transition hover:border-brand-300 hover:shadow-lift">
+        <span class="text-xl">🧭</span>
+        <span>
+          <span class="block text-sm font-semibold text-ink-900">Admin Django</span>
+          <span class="block text-xs text-ink-500">Tous les modèles</span>
+        </span>
+      </a>
+      <a href="{% url 'adminpanel:home_list' %}" class="admin-card flex items-center gap-3 p-4 transition hover:border-brand-300 hover:shadow-lift">
+        <span class="text-xl">📋</span>
+        <span>
+          <span class="block text-sm font-semibold text-ink-900">Liste publications</span>
+          <span class="block text-xs text-ink-500">Gérer l’accueil</span>
+        </span>
+      </a>
+      <a href="{% url 'adminpanel:projects_list' %}" class="admin-card flex items-center gap-3 p-4 transition hover:border-brand-300 hover:shadow-lift">
+        <span class="text-xl">🗂</span>
+        <span>
+          <span class="block text-sm font-semibold text-ink-900">Liste projets</span>
+          <span class="block text-xs text-ink-500">Suivi terrain</span>
+        </span>
+      </a>
+      <a href="{% url 'adminpanel:news_list' %}" class="admin-card flex items-center gap-3 p-4 transition hover:border-brand-300 hover:shadow-lift">
+        <span class="text-xl">🗞</span>
+        <span>
+          <span class="block text-sm font-semibold text-ink-900">Liste actualités</span>
+          <span class="block text-xs text-ink-500">Articles publics</span>
+        </span>
+      </a>
+    </div>
+  </div>
+</section>
+
+{# ---------- KPI ---------- #}
+<div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
   {% for kpi in kpis %}
   <div class="admin-card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">{{ kpi.label }}</p>
-    <p class="mt-2 font-display text-2xl font-extrabold text-ink-900">{{ kpi.value }}</p>
-    <p class="mt-1 text-xs text-ink-500">{{ kpi.hint }}</p>
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">{{ kpi.label }}</p>
+        <p class="mt-2 font-display text-2xl font-extrabold text-ink-900">{{ kpi.value }}</p>
+        <p class="mt-1 text-xs text-ink-500">{{ kpi.hint }}</p>
+      </div>
+      {% if kpi.icon %}
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-lg">{{ kpi.icon }}</span>
+      {% endif %}
+    </div>
   </div>
   {% endfor %}
 </div>
 
-<div class="mt-6 flex flex-wrap gap-3">
-  <a href="{% url 'adminpanel:home_create' %}" class="btn btn-primary btn-sm">+ Nouvelle publication</a>
-  <a href="{% url 'adminpanel:project_create' %}" class="btn btn-outline btn-sm">+ Nouveau projet</a>
-  <a href="{% url 'adminpanel:news_create' %}" class="btn btn-outline btn-sm">+ Nouvelle actualité</a>
-  <a href="{% url 'adminpanel:media_list' %}" class="btn btn-outline btn-sm">Importer un média</a>
-</div>
-
+{# ---------- Activité récente ---------- #}
 <div class="mt-6 grid gap-6 lg:grid-cols-3">
   <section class="admin-card overflow-hidden lg:col-span-1">
-    <header class="border-b border-ink-100 px-5 py-4">
+    <header class="flex items-center justify-between border-b border-ink-100 px-5 py-4">
       <h2 class="font-display text-sm font-bold text-ink-900">Dernières publications</h2>
+      <a href="{% url 'adminpanel:home_create' %}" class="text-xs font-semibold text-brand-700 hover:underline">+ Ajouter</a>
     </header>
     <ul class="divide-y divide-ink-100">
       {% for post in recent_home_posts %}
@@ -33,14 +140,15 @@
         <span class="badge {% if post.status == 'published' %}badge-green{% else %}badge-gray{% endif %}">{{ post.get_status_display }}</span>
       </li>
       {% empty %}
-      <li class="px-5 py-6 text-sm text-ink-500">Aucune publication pour l'instant.</li>
+      <li class="px-5 py-6 text-sm text-ink-500">Aucune publication pour l’instant.</li>
       {% endfor %}
     </ul>
   </section>
 
   <section class="admin-card overflow-hidden lg:col-span-1">
-    <header class="border-b border-ink-100 px-5 py-4">
+    <header class="flex items-center justify-between border-b border-ink-100 px-5 py-4">
       <h2 class="font-display text-sm font-bold text-ink-900">Actualités récentes</h2>
+      <a href="{% url 'adminpanel:news_create' %}" class="text-xs font-semibold text-brand-700 hover:underline">+ Ajouter</a>
     </header>
     <ul class="divide-y divide-ink-100">
       {% for article in recent_articles %}
@@ -58,8 +166,9 @@
   </section>
 
   <section class="admin-card overflow-hidden lg:col-span-1">
-    <header class="border-b border-ink-100 px-5 py-4">
+    <header class="flex items-center justify-between border-b border-ink-100 px-5 py-4">
       <h2 class="font-display text-sm font-bold text-ink-900">Messages de contact</h2>
+      <span class="badge badge-gray">{{ recent_messages|length }}</span>
     </header>
     <ul class="divide-y divide-ink-100">
       {% for msg in recent_messages %}
@@ -74,9 +183,11 @@
   </section>
 </div>
 
+{# ---------- Projets ---------- #}
 <section class="admin-card mt-6 overflow-hidden">
-  <header class="border-b border-ink-100 px-5 py-4">
+  <header class="flex flex-wrap items-center justify-between gap-3 border-b border-ink-100 px-5 py-4">
     <h2 class="font-display text-sm font-bold text-ink-900">Projets</h2>
+    <a href="{% url 'adminpanel:project_create' %}" class="btn btn-outline btn-sm">+ Nouveau projet</a>
   </header>
   <div class="overflow-x-auto">
     <table class="admin-table">
@@ -104,4 +215,38 @@
     </table>
   </div>
 </section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  var panel = document.getElementById('advanced-panel');
+  var openBtn = document.getElementById('btn-advanced-open');
+  var closeBtn = document.getElementById('btn-advanced-close');
+  var KEY = 'cmdm_advanced_open';
+
+  function show() {
+    if (!panel) return;
+    panel.hidden = false;
+    panel.classList.remove('hidden');
+    try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function hide() {
+    if (!panel) return;
+    panel.hidden = true;
+    panel.classList.add('hidden');
+    try { sessionStorage.removeItem(KEY); } catch (e) {}
+    if (openBtn) openBtn.focus();
+  }
+
+  if (openBtn) openBtn.addEventListener('click', show);
+  if (closeBtn) closeBtn.addEventListener('click', hide);
+
+  try {
+    if (sessionStorage.getItem(KEY) === '1') show();
+  } catch (e) {}
+})();
+</script>
 {% endblock %}

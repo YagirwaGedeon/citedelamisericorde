@@ -61,6 +61,23 @@ class AdminPanelTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, "Tableau de bord")
 
+    def test_dashboard_quick_actions_and_advanced_panel(self):
+        self.client.login(username="Manasse Kamole", password="Manasse2026")
+        r = self.client.get("/admin/dashboard/")
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "Nouvelle actualité")
+        self.assertContains(r, "Nouveau projet")
+        self.assertContains(r, "Publication accueil")
+        self.assertContains(r, "Importer un média")
+        self.assertContains(r, "Options avancées")
+        self.assertContains(r, "Quitter l’option avancée")
+        self.assertContains(r, 'id="advanced-panel"')
+        self.assertContains(r, "btn-advanced-close")
+        # Lien de sortie depuis l’admin Django avancée
+        r = self.client.get("/django-admin/")
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "Quitter l’option avancée")
+
     def test_password_is_hashed_not_plaintext(self):
         user = User.objects.get(username="Manasse Kamole")
         self.assertNotIn("Manasse2026", user.password)
