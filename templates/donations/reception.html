@@ -23,7 +23,15 @@
       </p>
       <div class="mt-5 rounded-xl bg-ink-50 p-4 text-sm">
         <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">Banque</p>
-        <p class="mt-1 font-semibold text-ink-900">EQUITY BCDC — République Démocratique du Congo</p>
+        <p class="mt-1 font-semibold text-ink-900">EQUITY BANK SA — République Démocratique du Congo</p>
+        <p class="mt-3 text-sm text-ink-600">
+          Pour les détails complets (numéro de compte USD, SWIFT <strong>BCDCCDKI</strong> / <strong>CITIUS33</strong>)
+          et pour confirmer votre virement, utilisez la page dédiée :
+        </p>
+        <a href="{% url 'donations:bank_transfer' %}" class="btn btn-primary btn-sm mt-4">
+          🏦 Voir les coordonnées bancaires
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
         <p class="mt-2 text-xs text-ink-500">Le RIB complet est communiqué sur demande
           {% if site_settings.email %} à <a href="mailto:{{ site_settings.email }}" class="font-semibold text-brand-700 hover:underline">{{ site_settings.email }}</a>{% endif %}.</p>
       </div>

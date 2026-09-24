@@ -152,7 +152,10 @@
             <p class="mt-0.5 text-ink-500">Virement bancaire, Western Union, MoneyGram, Ria, Chap Chap (Airtel), dons en nature ou depuis le Canada.</p>
           </div>
         </div>
-        <a href="{% url 'donations:reception' %}" class="btn btn-outline btn-sm mt-4 w-full">
+        <a href="{% url 'donations:bank_transfer' %}" class="btn btn-outline btn-sm mt-4 w-full">
+          🏦 Virement bancaire
+        </a>
+        <a href="{% url 'donations:reception' %}" class="btn btn-ghost btn-sm mt-2 w-full">
           Tous les modes de réception
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </a>

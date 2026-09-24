@@ -13,6 +13,10 @@ urlpatterns = [
     path("dashboard/", views.dashboard, name="dashboard"),
     path("analytics/", views.analytics_view, name="analytics"),
 
+    path("bank_transfers/", views.bank_transfers_list, name="bank_transfers_list"),
+    path("bank_transfers/<int:pk>/status/", views.bank_transfer_status, name="bank_transfer_status"),
+    path("bank_transfers/<int:pk>/proof/", views.bank_transfer_proof, name="bank_transfer_proof"),
+
     path("home/", views.home_list, name="home_list"),
     path("home/create/", views.home_create, name="home_create"),
     path("home/<int:pk>/edit/", views.home_edit, name="home_edit"),

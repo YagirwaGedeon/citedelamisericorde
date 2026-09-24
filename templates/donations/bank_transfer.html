@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Virement bancaire — {{ site_settings.organization_name|default:"Cité de la Miséricorde" }}{% endblock %}
+{% block meta_description %}Coordonnées bancaires internationales pour un don par virement bancaire (USD, SWIFT) vers l'ORPHELINAT CJPD.{% endblock %}
+
+{% block content %}
+<section class="relative overflow-hidden border-b border-ink-200/60 bg-white">
+  <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(20,184,166,0.14),transparent_55%),radial-gradient(ellipse_at_bottom_left,rgba(245,158,11,0.1),transparent_50%)]"></div>
+  <div class="relative mx-auto max-w-3xl px-4 py-14 text-center sm:px-6">
+    <span class="badge badge-brand mx-auto">Paiement par virement bancaire</span>
+    <h1 class="mt-4 font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">Virement bancaire</h1>
+    <p class="mx-auto mt-3 max-w-xl text-ink-500">
+      Effectuez votre don par virement bancaire national ou international.
+      Indiquez la référence de votre don, puis confirmez le virement pour vérification.
+    </p>
+    {% if donation %}
+    <p class="mt-4 inline-flex items-center gap-2 rounded-full bg-brand-50 px-4 py-1.5 text-sm font-semibold text-brand-800">
+      Référence du don : <strong>{{ donation.reference }}</strong>
+      — {{ donation.amount }} {{ donation.currency }}
+    </p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+  {# ---------- Carte coordonnées bancaires ---------- #}
+  <div class="card overflow-hidden reveal" id="bank-card">
+    <div class="border-b border-ink-100 bg-gradient-to-br from-brand-700 via-brand-800 to-ink-950 px-6 py-5">
+      <div class="flex items-center gap-3">
+        <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-white" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><path d="M3 22h18"/><path d="M6 18v-7"/><path d="M10 18v-7"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="m2 10 10-6 10 6"/><path d="M4 10v8"/><path d="M20 10v8"/></svg>
+        </span>
+        <div>
+          <h2 class="font-display text-lg font-bold text-white">Virement bancaire international</h2>
+          <p class="text-sm text-brand-100/80">Donateurs nationaux &amp; internationaux</p>
+        </div>
+      </div>
+      <div class="mt-4 flex flex-wrap gap-2">
+        <span class="badge bg-white/15 text-white border border-white/20">Devise : USD</span>
+        <span class="badge bg-accent-500/25 text-accent-100 border border-accent-400/40">SWIFT bénéficiaire : {{ bank.swift_beneficiary }}</span>
+        <span class="badge bg-white/15 text-white border border-white/20">SWIFT transferts : {{ bank.swift_international }}</span>
+      </div>
+    </div>
+
+    <div class="divide-y divide-ink-100">
+      <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">Titulaire du compte</p>
+          <p class="mt-0.5 font-display text-base font-bold text-ink-900">{{ bank.beneficiary }}</p>
+        </div>
+        <span class="badge badge-brand">Bénéficiaire</span>
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">Banque bénéficiaire</p>
+          <p class="mt-0.5 font-display text-base font-bold text-ink-900">{{ bank.bank }}</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+        <div class="min-w-0">
+          <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">Numéro de compte</p>
+          <p id="bank-account" class="mt-0.5 font-mono text-sm font-bold tracking-wide text-ink-900 break-all">{{ bank.account_number }}</p>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm copy-btn" data-copy="{{ bank.account_number }}" data-target="bank-account">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          Copier
+        </button>
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">Devise</p>
+          <p class="mt-0.5 font-display text-base font-bold text-ink-900">{{ bank.currency }} (Dollar américain)</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+        <div class="min-w-0">
+          <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">Code SWIFT de la banque bénéficiaire</p>
+          <p id="swift-beneficiary" class="mt-0.5 font-mono text-sm font-bold tracking-widest text-ink-900">{{ bank.swift_beneficiary }}</p>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm copy-btn" data-copy="{{ bank.swift_beneficiary }}" data-target="swift-beneficiary">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          Copier
+        </button>
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+        <div class="min-w-0">
+          <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">Code SWIFT pour les transferts internationaux</p>
+          <p id="swift-intl" class="mt-0.5 font-mono text-sm font-bold tracking-widest text-ink-900">{{ bank.swift_international }}</p>
+          <p class="mt-1 text-xs text-ink-500">À utiliser pour les virements depuis l’étranger (correspondant / intermediate bank).</p>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm copy-btn" data-copy="{{ bank.swift_international }}" data-target="swift-intl">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          Copier
+        </button>
+      </div>
+    </div>
+
+    <div class="border-t border-ink-100 bg-ink-50 px-6 py-5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <p class="max-w-md text-sm text-ink-600">
+          Indiquez <strong>{{ donation.reference|default:"votre référence de don" }}</strong> dans le motif du virement pour un traitement plus rapide.
+        </p>
+        <a href="#confirm-section" class="btn btn-primary" id="btn-did-transfer">
+          J’ai effectué le virement
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {# ---------- Toast copie ---------- #}
+  <div id="copy-toast" class="pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 translate-y-3 rounded-full bg-ink-900 px-5 py-2.5 text-sm font-semibold text-white opacity-0 shadow-float transition-all duration-300" role="status" aria-live="polite">
+    Information copiée
+  </div>
+
+  {# ---------- Message de confirmation envoyée ---------- #}
+  {% if confirmation_sent %}
+  <div class="card mt-8 border-green-200 bg-green-50 p-6 text-center reveal" id="confirm-section">
+    <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-700" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+    </span>
+    <h2 class="mt-4 font-display text-xl font-extrabold text-ink-900">Confirmation bien reçue</h2>
+    <p class="mx-auto mt-2 max-w-md text-sm text-ink-600">
+      Votre demande a été reçue. Elle sera vérifiée par l’équipe de l’<strong>ORPHELINAT CJPD</strong>
+      dans les plus brefs délais. Merci pour votre générosité.
+    </p>
+    <div class="mt-5 flex flex-wrap justify-center gap-3">
+      <a href="{% url 'home' %}" class="btn btn-primary">Retour à l’accueil</a>
+      <a href="{% url 'donations:create' %}" class="btn btn-outline">Nouveau don</a>
+    </div>
+  </div>
+  {% else %}
+  {# ---------- Formulaire confirmation ---------- #}
+  <div class="card mt-8 p-6 sm:p-8 reveal {% if not show_form %}hidden{% endif %}" id="confirm-section" {% if not show_form %}hidden{% endif %}>
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <h2 class="font-display text-lg font-bold text-ink-900">Confirmer votre virement</h2>
+        <p class="mt-1 text-sm text-ink-500">
+          Renseignez les informations du transfert effectué. L’équipe vérifiera la réception.
+        </p>
+      </div>
+      {% if show_form %}
+      <button type="button" id="btn-hide-form" class="btn btn-ghost btn-sm" aria-label="Masquer le formulaire">Fermer</button>
+      {% endif %}
+    </div>
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-error mt-4">
+      <div>{{ form.non_field_errors }}</div>
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="mt-5 space-y-4" novalidate id="bank-confirm-form">
+      {% csrf_token %}
+      {% if donation %}<input type="hidden" name="donation" value="{{ donation.pk }}">{% endif %}
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="{{ form.full_name.id_for_label }}" class="label label-required">{{ form.full_name.label }}</label>
+          {{ form.full_name }}
+          {% for e in form.full_name.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div>
+          <label for="{{ form.email.id_for_label }}" class="label label-required">{{ form.email.label }}</label>
+          {{ form.email }}
+          {% for e in form.email.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div>
+          <label for="{{ form.country.id_for_label }}" class="label label-required">{{ form.country.label }}</label>
+          {{ form.country }}
+          {% for e in form.country.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div>
+          <label for="{{ form.amount.id_for_label }}" class="label label-required">{{ form.amount.label }}</label>
+          {{ form.amount }}
+          {% for e in form.amount.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div>
+          <label for="{{ form.currency.id_for_label }}" class="label label-required">{{ form.currency.label }}</label>
+          {{ form.currency }}
+          {% for e in form.currency.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div>
+          <label for="{{ form.transfer_date.id_for_label }}" class="label label-required">{{ form.transfer_date.label }}</label>
+          {{ form.transfer_date }}
+          {% for e in form.transfer_date.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+      </div>
+      <div>
+        <label for="{{ form.transaction_reference.id_for_label }}" class="label label-required">{{ form.transaction_reference.label }}</label>
+        {{ form.transaction_reference }}
+        {% for e in form.transaction_reference.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+      </div>
+      <div>
+        <label for="{{ form.proof.id_for_label }}" class="label">{{ form.proof.label }}</label>
+        {{ form.proof }}
+        <p class="mt-1 text-xs text-ink-500">Formats acceptés : PDF, PNG, JPG, WEBP — 5 Mo maximum.</p>
+        {% for e in form.proof.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+      </div>
+
+      <button type="submit" class="btn btn-accent btn-lg btn-block">
+        Envoyer la confirmation du virement
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+      </button>
+      <p class="text-center text-xs text-ink-400">
+        Vos données ne sont accessibles qu’aux administrateurs autorisés de l’ORPHELINAT CJPD.
+      </p>
+    </form>
+  </div>
+  {% endif %}
+
+  {# ---------- Aide nationaux / internationaux ---------- #}
+  <div class="mt-8 grid gap-4 sm:grid-cols-2">
+    <div class="card p-5">
+      <span class="badge badge-brand">Donateurs internationaux</span>
+      <ul class="mt-3 space-y-2 text-sm text-ink-600">
+        <li>• Utilisez la devise <strong>USD</strong></li>
+        <li>• SWIFT banque bénéficiaire : <code class="rounded bg-ink-100 px-1.5 py-0.5 font-mono text-ink-800">{{ bank.swift_beneficiary }}</code></li>
+        <li>• SWIFT transferts internationaux : <code class="rounded bg-ink-100 px-1.5 py-0.5 font-mono text-ink-800">{{ bank.swift_international }}</code></li>
+      </ul>
+    </div>
+    <div class="card p-5">
+      <span class="badge badge-accent">Donateurs nationaux (RDC)</span>
+      <ul class="mt-3 space-y-2 text-sm text-ink-600">
+        <li>• Virement local EQUITY BANK SA</li>
+        <li>• Compte USD : <code class="rounded bg-ink-100 px-1.5 py-0.5 font-mono text-ink-800 break-all">{{ bank.account_number }}</code></li>
+        <li>• Mentionnez la référence de votre don</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mt-8 flex flex-wrap justify-center gap-3">
+    <a href="{% url 'donations:create' %}" class="btn btn-outline">Faire un don en ligne</a>
+    <a href="{% url 'donations:reception' %}" class="btn btn-ghost">Autres modes de réception</a>
+  </div>
+</section>
+
+<script>
+(function () {
+  var toast = document.getElementById("copy-toast");
+  var toastTimer;
+
+  function showToast(msg) {
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.classList.remove("opacity-0", "translate-y-3");
+    toast.classList.add("opacity-100", "translate-y-0");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      toast.classList.add("opacity-0", "translate-y-3");
+      toast.classList.remove("opacity-100", "translate-y-0");
+    }, 2200);
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function (resolve, reject) {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        resolve();
+      } catch (e) {
+        reject(e);
+      } finally {
+        document.body.removeChild(ta);
+      }
+    });
+  }
+
+  document.querySelectorAll(".copy-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var value = btn.getAttribute("data-copy") || "";
+      copyText(value).then(function () {
+        var original = btn.innerHTML;
+        btn.innerHTML = "✓ Copié";
+        btn.classList.add("border-brand-500", "text-brand-700");
+        showToast("Information copiée dans le presse-papiers");
+        setTimeout(function () {
+          btn.innerHTML = original;
+          btn.classList.remove("border-brand-500", "text-brand-700");
+        }, 2000);
+      }).catch(function () {
+        showToast("Copie impossible — sélectionnez manuellement");
+      });
+    });
+  });
+
+  var didBtn = document.getElementById("btn-did-transfer");
+  var section = document.getElementById("confirm-section");
+  var hideBtn = document.getElementById("btn-hide-form");
+
+  if (didBtn && section) {
+    didBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      section.hidden = false;
+      section.classList.remove("hidden");
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
+      var first = section.querySelector("input, select, textarea");
+      if (first) setTimeout(function () { first.focus(); }, 400);
+    });
+  }
+  if (hideBtn && section) {
+    hideBtn.addEventListener("click", function () {
+      section.hidden = true;
+      section.classList.add("hidden");
+      if (didBtn) didBtn.focus();
+    });
+  }
+
+  // Ouvrir le formulaire si #confirm-section dans l'URL
+  if (location.hash === "#confirm-section" && section) {
+    section.hidden = false;
+    section.classList.remove("hidden");
+  }
+})();
+</script>
+{% endblock %}

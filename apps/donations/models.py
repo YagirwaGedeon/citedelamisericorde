@@ -115,3 +115,9 @@ class Donation(TimeStampedModel):
         else:
             number = 1
         return f"CMD-DON-{year}-{number:06d}"
+
+
+# Re-export pour imports uniques (évite les cirkulaires apps.donations.models_bank)
+from apps.donations.models_bank import BankTransferConfirmation  # noqa: E402, F401
+
+__all__ = ["Donor", "Donation", "BankTransferConfirmation"]

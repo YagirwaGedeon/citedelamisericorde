@@ -42,6 +42,7 @@ class AdminPanelTests(TestCase):
             "/admin/profile/",
             "/admin/settings/",
             "/admin/analytics/",
+            "/admin/bank_transfers/",
         ):
             r = self.client.get(path)
             self.assertEqual(r.status_code, 302, path)
@@ -254,3 +255,85 @@ class AdminPanelTests(TestCase):
         self.assertEqual(reverse("adminpanel:media_list"), "/admin/media/")
         self.assertEqual(reverse("adminpanel:profile"), "/admin/profile/")
         self.assertEqual(reverse("adminpanel:settings"), "/admin/settings/")
+        self.assertEqual(reverse("adminpanel:bank_transfers_list"), "/admin/bank_transfers/")
+
+    def test_bank_transfers_list_and_sidebar(self):
+        self.client.login(username="Manasse Kamole", password="Manasse2026")
+        r = self.client.get("/admin/bank_transfers/")
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "Virements bancaires")
+        self.assertContains(r, "En attente")
+        self.assertContains(r, "Vérifié")
+        self.assertContains(r, 'class="nav-item is-active"')
+        r = self.client.get("/admin/dashboard/")
+        self.assertContains(r, "Virements")
+
+    def test_bank_transfer_status_change(self):
+        from decimal import Decimal
+
+        from apps.donations.models import BankTransferConfirmation, Donation, Donor
+
+        donor = Donor.objects.create(email="d@example.org", name="Donateur")
+        donation = Donation.objects.create(
+            donor=donor, amount=Decimal("50.00"), currency="USD", status="PROCESSING",
+            idempotency_key="bt-test-1",
+        )
+        item = BankTransferConfirmation.objects.create(
+            donation=donation,
+            full_name="Donateur Test",
+            email="d@example.org",
+            country="France",
+            amount=Decimal("50.00"),
+            currency="USD",
+            transfer_date="2026-09-20",
+            transaction_reference="TRX-001",
+            status="pending",
+        )
+        self.client.login(username="Manasse Kamole", password="Manasse2026")
+        r = self.client.post(
+            f"/admin/bank_transfers/{item.pk}/status/",
+            {"status": "verified", "admin_note": "Reçu confirmé"},
+        )
+        self.assertEqual(r.status_code, 302)
+        item.refresh_from_db()
+        self.assertEqual(item.status, "verified")
+        self.assertIsNotNone(item.reviewed_at)
+        self.assertEqual(item.admin_note, "Reçu confirmé")
+        donation.refresh_from_db()
+        self.assertEqual(donation.status, "SUCCEEDED")
+
+        r = self.client.post(
+            f"/admin/bank_transfers/{item.pk}/status/",
+            {"status": "invalid", "admin_note": ""},
+        )
+        self.assertEqual(r.status_code, 302)
+        item.refresh_from_db()
+        self.assertEqual(item.status, "verified")
+
+    def test_bank_transfer_proof_requires_staff(self):
+        from django.core.files.base import ContentFile
+
+        from apps.donations.models import BankTransferConfirmation
+
+        item = BankTransferConfirmation.objects.create(
+            full_name="Preuve",
+            email="p@example.org",
+            country="Canada",
+            amount=10,
+            currency="USD",
+            transfer_date="2026-09-21",
+            transaction_reference="TRX-P",
+            status="pending",
+        )
+        item.proof.save("recu.pdf", ContentFile(b"%PDF-1.4 test"), save=True)
+
+        # Anonyme → redirection login
+        r = self.client.get(f"/admin/bank_transfers/{item.pk}/proof/")
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("/admin/login/", r["Location"])
+
+        # Staff → téléchargement
+        self.client.login(username="Manasse Kamole", password="Manasse2026")
+        r = self.client.get(f"/admin/bank_transfers/{item.pk}/proof/")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("attachment", r.get("Content-Disposition", ""))

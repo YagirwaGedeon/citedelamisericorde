@@ -1,7 +1,10 @@
 """Vues de l'espace administration (/admin/*)."""
 
 from datetime import timedelta
+from decimal import Decimal, InvalidOperation
 from hashlib import sha256
+from pathlib import Path
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib import messages
@@ -32,7 +35,7 @@ from apps.analytics.models import PageView
 from apps.articles.models import Article
 from apps.contact.models import ContactMessage
 from apps.core.models import SiteSettings
-from apps.donations.models import Donation, Donor
+from apps.donations.models import BankTransferConfirmation, Donation, Donor
 from apps.media.models import MediaItem
 from apps.projects.models import Project
 
@@ -704,3 +707,138 @@ def analytics_view(request):
         "unique_visitors": unique_visitors,
     }
     return render(request, "adminpanel/analytics.html", context)
+
+
+# ---------------------------------------------------------------- Virements bancaires
+@staff_login_required
+def bank_transfers_list(request):
+    """Liste des confirmations de virement : recherche + filtres date/pays/montant/statut."""
+    q = request.GET.get("q", "").strip()
+    status = request.GET.get("status", "").strip()
+    country = request.GET.get("country", "").strip()
+    date_from = request.GET.get("date_from", "").strip()
+    date_to = request.GET.get("date_to", "").strip()
+    amount_min = request.GET.get("amount_min", "").strip()
+    amount_max = request.GET.get("amount_max", "").strip()
+
+    items = BankTransferConfirmation.objects.select_related("donation", "donation__donor")
+    if q:
+        items = items.filter(
+            Q(full_name__icontains=q)
+            | Q(email__icontains=q)
+            | Q(transaction_reference__icontains=q)
+            | Q(country__icontains=q)
+            | Q(donation__reference__icontains=q)
+            | Q(donation__donor__email__icontains=q)
+        )
+    if status in {"pending", "verified", "rejected"}:
+        items = items.filter(status=status)
+    if country:
+        items = items.filter(country__icontains=country)
+    if date_from:
+        items = items.filter(transfer_date__gte=date_from)
+    if date_to:
+        items = items.filter(transfer_date__lte=date_to)
+    if amount_min:
+        try:
+            items = items.filter(amount__gte=Decimal(amount_min))
+        except (InvalidOperation, ValueError):
+            pass
+    if amount_max:
+        try:
+            items = items.filter(amount__lte=Decimal(amount_max))
+        except (InvalidOperation, ValueError):
+            pass
+
+    page_obj = Paginator(items, 20).get_page(request.GET.get("page"))
+
+    filter_params = {
+        k: v
+        for k, v in request.GET.items()
+        if k != "page" and str(v).strip()
+    }
+    filter_qs = urlencode(filter_params)
+
+    all_qs = BankTransferConfirmation.objects.all()
+    status_counts = {
+        "all": all_qs.count(),
+        "pending": all_qs.filter(status="pending").count(),
+        "verified": all_qs.filter(status="verified").count(),
+        "rejected": all_qs.filter(status="rejected").count(),
+    }
+    countries = (
+        BankTransferConfirmation.objects.exclude(country="")
+        .values_list("country", flat=True)
+        .distinct()
+        .order_by("country")
+    )
+    totals = all_qs.aggregate(total_amount=Sum("amount"))
+
+    return render(
+        request,
+        "adminpanel/bank_transfers.html",
+        {
+            "page_obj": page_obj,
+            "q": q,
+            "status": status,
+            "country": country,
+            "date_from": date_from,
+            "date_to": date_to,
+            "amount_min": amount_min,
+            "amount_max": amount_max,
+            "filter_qs": filter_qs,
+            "status_counts": status_counts,
+            "countries": countries,
+            "total_amount": totals["total_amount"] or 0,
+            "page_title": "Virements bancaires",
+            "active_section": "bank_transfers",
+            "statuses": BankTransferConfirmation.STATUSES,
+        },
+    )
+
+
+@staff_login_required
+@require_POST
+def bank_transfer_status(request, pk):
+    """Changer le statut (En attente / Vérifié / Rejeté) + note interne."""
+    item = get_object_or_404(BankTransferConfirmation, pk=pk)
+    new_status = request.POST.get("status", "").strip()
+    note = request.POST.get("admin_note", "")
+    valid = {code for code, _ in BankTransferConfirmation.STATUSES}
+    if new_status not in valid:
+        messages.error(request, "Statut invalide.")
+        return redirect("adminpanel:bank_transfers_list")
+
+    item.status = new_status
+    if note.strip():
+        item.admin_note = note.strip()
+    if new_status == "verified":
+        item.reviewed_at = timezone.now()
+        if item.donation and item.donation.status in {"PENDING", "PROCESSING"}:
+            item.donation.status = "SUCCEEDED"
+            item.donation.paid_at = item.donation.paid_at or timezone.now()
+            item.donation.save(update_fields=["status", "paid_at", "updated_at"])
+    item.save()
+
+    labels = dict(BankTransferConfirmation.STATUSES)
+    messages.success(
+        request,
+        f"Virement de {item.full_name} marqué « {labels.get(new_status, new_status)} ».",
+    )
+    return redirect("adminpanel:bank_transfers_list")
+
+
+@staff_login_required
+def bank_transfer_proof(request, pk):
+    """Téléchargement de la preuve — réservé aux comptes autorisés."""
+    item = get_object_or_404(BankTransferConfirmation, pk=pk)
+    if not item.proof:
+        raise Http404("Aucune preuve jointe.")
+    try:
+        return FileResponse(
+            item.proof.open("rb"),
+            as_attachment=True,
+            filename=Path(item.proof.name).name,
+        )
+    except (FileNotFoundError, ValueError):
+        raise Http404

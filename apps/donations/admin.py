@@ -4,7 +4,7 @@ from django.contrib import admin
 from apps.core.admin_actions import export_csv_action
 from apps.core.admin_site import admin_site
 
-from apps.donations.models import Donation, Donor
+from apps.donations.models import BankTransferConfirmation, Donation, Donor
 
 
 class DonationInline(admin.TabularInline):
@@ -42,3 +42,21 @@ class DonationAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return request.user.is_superuser
+
+
+@admin_site.register(BankTransferConfirmation)
+class BankTransferConfirmationAdmin(admin.ModelAdmin):
+    list_display = (
+        "full_name", "email", "country", "amount", "currency",
+        "transfer_date", "transaction_reference", "status", "created_at",
+    )
+    list_filter = ("status", "currency", "country", "transfer_date")
+    search_fields = ("full_name", "email", "transaction_reference", "country", "donation__reference")
+    readonly_fields = ("created_at", "updated_at", "reviewed_at")
+    date_hierarchy = "created_at"
+    actions = (export_csv_action,)
+    csv_export_fields = (
+        "full_name", "email", "country", "amount", "currency",
+        "transfer_date", "transaction_reference", "status", "admin_note", "created_at",
+    )
+    export_csv_action.short_description = "Exporter la sélection en CSV"

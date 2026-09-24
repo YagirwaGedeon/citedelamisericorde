@@ -47,13 +47,34 @@
         </button>
       </form>
       {% endfor %}
+      {% else %}
+      <div class="alert alert-warning mt-7">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 h-4 w-4 shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        <div>Aucune passerelle de paiement en ligne n’est activée pour le moment. Vous pouvez payer par virement bancaire ci-dessous.</div>
+      </div>
+      {% endif %}
+
+      {# ---------- Option Virement bancaire (toujours disponible) ---------- #}
+      <a href="{% url 'donations:bank_transfer_donation' donation.pk %}"
+         class="group flex w-full items-center gap-4 rounded-xl border-2 border-dashed border-accent-400/70 bg-accent-50/40 p-5 text-left shadow-soft transition hover:border-accent-500 hover:shadow-lift">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-100 text-accent-700 transition group-hover:bg-accent-500 group-hover:text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="M3 22h18"/><path d="M6 18v-7"/><path d="M10 18v-7"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="m2 10 10-6 10 6"/><path d="M4 10v8"/><path d="M20 10v8"/></svg>
+        </span>
+        <span class="flex-1">
+          <span class="block font-display font-bold text-ink-900">🏦 Virement bancaire</span>
+          <span class="block text-xs text-ink-500">National &amp; international — USD · SWIFT BCDCCDKI / CITIUS33 · Coordonnées affichées + confirmation</span>
+        </span>
+        <span class="inline-flex items-center gap-1 text-sm font-semibold text-accent-700">
+          Coordonnées
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 transition group-hover:translate-x-0.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </span>
+      </a>
+
+      {% if not providers %}
+      {# déjà un alert plus haut #}
+      {% endif %}
     </div>
-    {% else %}
-    <div class="alert alert-warning mt-7">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 h-4 w-4 shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-      <div>Aucune passerelle de paiement n'est activée pour le moment. Contactez-nous via le formulaire de contact.</div>
-    </div>
-    {% endif %}
+    {% comment %}{% if not providers %}{% endif %}{% endcomment %}
 
     <div class="mt-7 flex items-center justify-between border-t border-ink-100 pt-5">
       <a href="{% url 'donations:create' %}" class="inline-flex items-center gap-1.5 text-sm font-medium text-ink-500 transition hover:text-brand-700">

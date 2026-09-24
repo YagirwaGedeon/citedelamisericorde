@@ -1,0 +1,128 @@
+{% extends "adminpanel/base.html" %}
+
+{% block content %}
+<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+  <div class="flex flex-wrap gap-3">
+    <span class="badge badge-amber">En attente : {{ status_counts.pending }}</span>
+    <span class="badge badge-green">Vérifiés : {{ status_counts.verified }}</span>
+    <span class="badge badge-red">Rejetés : {{ status_counts.rejected }}</span>
+    <span class="badge badge-gray">Total : {{ status_counts.all }}</span>
+    <span class="badge badge-brand">Somme : {{ total_amount|floatformat:2 }}</span>
+  </div>
+</div>
+
+<form method="get" class="admin-card mb-5 p-4">
+  <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div>
+      <label for="bt-q" class="label">Recherche</label>
+      <input type="search" id="bt-q" name="q" value="{{ q }}" placeholder="Nom, email, réf. don, réf. transaction…" class="input">
+    </div>
+    <div>
+      <label for="bt-status" class="label">Statut</label>
+      <select id="bt-status" name="status" class="input">
+        <option value="">Tous</option>
+        <option value="pending" {% if status == 'pending' %}selected{% endif %}>En attente</option>
+        <option value="verified" {% if status == 'verified' %}selected{% endif %}>Vérifié</option>
+        <option value="rejected" {% if status == 'rejected' %}selected{% endif %}>Rejeté</option>
+      </select>
+    </div>
+    <div>
+      <label for="bt-country" class="label">Pays</label>
+      <input type="text" id="bt-country" name="country" value="{{ country }}" list="bt-countries" placeholder="Tous les pays" class="input">
+      <datalist id="bt-countries">
+        {% for c in countries %}<option value="{{ c }}">{% endfor %}
+      </datalist>
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <div>
+        <label for="bt-date-from" class="label">Du</label>
+        <input type="date" id="bt-date-from" name="date_from" value="{{ date_from }}" class="input">
+      </div>
+      <div>
+        <label for="bt-date-to" class="label">Au</label>
+        <input type="date" id="bt-date-to" name="date_to" value="{{ date_to }}" class="input">
+      </div>
+    </div>
+    <div>
+      <label for="bt-amount-min" class="label">Montant min.</label>
+      <input type="number" id="bt-amount-min" name="amount_min" value="{{ amount_min }}" step="0.01" min="0" class="input" placeholder="0.00">
+    </div>
+    <div>
+      <label for="bt-amount-max" class="label">Montant max.</label>
+      <input type="number" id="bt-amount-max" name="amount_max" value="{{ amount_max }}" step="0.01" min="0" class="input" placeholder="0.00">
+    </div>
+    <div class="flex items-end gap-2 sm:col-span-2 lg:col-span-2">
+      <button type="submit" class="btn btn-primary btn-sm">Filtrer</button>
+      <a href="{% url 'adminpanel:bank_transfers_list' %}" class="btn btn-ghost btn-sm">Réinitialiser</a>
+    </div>
+  </div>
+</form>
+
+<div class="admin-card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Donateur</th>
+          <th>Montant</th>
+          <th>Pays</th>
+          <th>Date virement</th>
+          <th>Réf. transaction</th>
+          <th>Don lié</th>
+          <th>Preuve</th>
+          <th>Statut</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in page_obj %}
+        <tr>
+          <td>
+            <p class="font-medium text-ink-900">{{ item.full_name }}</p>
+            <p class="text-xs text-ink-500">{{ item.email }}</p>
+          </td>
+          <td class="whitespace-nowrap font-semibold text-ink-900">{{ item.amount|floatformat:2 }} {{ item.currency }}</td>
+          <td class="text-sm">{{ item.country }}</td>
+          <td class="whitespace-nowrap text-sm">{{ item.transfer_date|date:"d/m/Y" }}</td>
+          <td class="font-mono text-xs text-ink-700">{{ item.transaction_reference }}</td>
+          <td class="text-sm">
+            {% if item.donation %}
+              <span class="font-semibold text-brand-700">{{ item.donation.reference }}</span>
+              <span class="text-xs text-ink-500">({{ item.donation.get_status_display }})</span>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if item.proof %}
+              <a href="{% url 'adminpanel:bank_transfer_proof' item.pk %}" class="font-semibold text-brand-700 hover:underline" download>Télécharger</a>
+            {% else %}<span class="text-xs text-ink-400">—</span>{% endif %}
+          </td>
+          <td>
+            <span class="badge {{ item.status_badge }}">{{ item.get_status_display }}</span>
+            {% if item.reviewed_at %}<p class="mt-0.5 text-[11px] text-ink-400">vérifié {{ item.reviewed_at|date:"d/m/Y" }}</p>{% endif %}
+          </td>
+          <td class="min-w-[240px]">
+            <form method="post" action="{% url 'adminpanel:bank_transfer_status' item.pk %}" class="flex flex-wrap items-center gap-2">
+              {% csrf_token %}
+              <select name="status" class="input w-32 py-1.5 text-xs" aria-label="Statut">
+                {% for code, label in statuses %}
+                <option value="{{ code }}" {% if item.status == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+              <input type="text" name="admin_note" value="{{ item.admin_note }}" placeholder="Note interne…" class="input w-36 py-1.5 text-xs" aria-label="Note interne">
+              <button type="submit" class="btn btn-outline btn-sm">OK</button>
+            </form>
+            {% if item.admin_note %}
+            <p class="mt-1 max-w-[220px] truncate text-[11px] text-ink-500" title="{{ item.admin_note }}">{{ item.admin_note }}</p>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="py-10 text-center text-ink-500">Aucun virement ne correspond à ces filtres.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% include "adminpanel/partials/pagination.html" with filter_qs=filter_qs %}
+{% endblock %}

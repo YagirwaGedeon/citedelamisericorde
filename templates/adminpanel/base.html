@@ -75,6 +75,12 @@
         <span class="nav-ic" aria-hidden="true">📈</span>
         <span class="nav-label">Analytics</span>
       </a>
+      <a href="{% url 'adminpanel:bank_transfers_list' %}"
+         class="nav-item {% if active_section == 'bank_transfers' %}is-active{% endif %}"
+         title="Virements bancaires">
+        <span class="nav-ic" aria-hidden="true">🏦</span>
+        <span class="nav-label">Virements</span>
+      </a>
 
       <p class="sidebar-label sidebar-label-gap">Compte</p>
       <a href="{% url 'adminpanel:profile' %}"

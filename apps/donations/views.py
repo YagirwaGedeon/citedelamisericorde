@@ -1,19 +1,30 @@
 """Vues de don : formulaire, choix de la passerelle et lancement du paiement (§18–19).
 
 Étape 10 : le paiement est exécuté par les passerelles de ``apps.payments``.
-Aucune donnée bancaire n'est collectée ou stockée ici.
+Aucune donnée bancaire n'est collectée ou stockée ici (hormis confirmation de virement).
 """
 
+from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.donations.forms import DonationForm
-from apps.donations.models import Donation, Donor
+from apps.donations.forms import BankTransferConfirmForm, DonationForm
+from apps.donations.models import BankTransferConfirmation, Donation, Donor
 from apps.payments.models import PaymentProvider, PaymentTransaction
 from apps.payments.receipts import generate_receipt, send_thank_you_email
 from apps.payments.services import PaymentServiceError, get_provider, settle_transaction
 from apps.projects.models import Project
+
+# Coordonnées bancaires internationales (affichées publiquement — pas de secret).
+BANK_TRANSFER_DETAILS = {
+    "beneficiary": "ORPHELINAT CJPD",
+    "bank": "EQUITY BANK SA",
+    "account_number": "00011-05040-02000422389-82",
+    "currency": "USD",
+    "swift_beneficiary": "BCDCCDKI",
+    "swift_international": "CITIUS33",
+}
 
 
 def donation_create(request):
@@ -144,3 +155,68 @@ def donation_cancelled(request, pk):
     """Page d'annulation / échec de paiement."""
     donation = get_object_or_404(Donation, pk=pk)
     return render(request, "donations/cancelled.html", {"donation": donation})
+
+
+# ---------------------------------------------------------------- Virement bancaire
+def donation_bank_transfer(request, pk=None):
+    """Coordonnées bancaires + formulaire de confirmation du virement."""
+    donation = None
+    if pk is not None:
+        donation = get_object_or_404(Donation, pk=pk)
+
+    bank = BANK_TRANSFER_DETAILS
+    show_form = request.GET.get("confirmer") == "1" or request.method == "POST"
+    confirmation_sent = False
+
+    initial = {}
+    if donation is not None:
+        initial["amount"] = donation.amount
+        initial["currency"] = donation.currency
+        if donation.donor_id and donation.donor.email:
+            initial["email"] = donation.donor.email
+        if donation.donor_id and donation.donor.country:
+            initial.setdefault("country", donation.donor.country)
+
+    form = BankTransferConfirmForm(
+        request.POST or None, request.FILES or None, initial=initial
+    )
+
+    if request.method == "POST" and form.is_valid():
+        confirmation = form.save(commit=False)
+        if donation is not None:
+            confirmation.donation = donation
+            if not confirmation.amount:
+                confirmation.amount = donation.amount
+            if not confirmation.currency:
+                confirmation.currency = donation.currency
+        confirmation.save()
+        if donation is not None and donation.status == "PENDING":
+            donation.status = "PROCESSING"
+            donation.provider_reference = confirmation.transaction_reference
+            donation.save(update_fields=["status", "provider_reference", "updated_at"])
+        confirmation_sent = True
+        show_form = False
+        form = BankTransferConfirmForm()
+        messages.success(
+            request,
+            "Votre confirmation a bien été reçue. L’équipe de l’ORPHELINAT CJPD "
+            "la vérifiera dans les plus brefs délais.",
+        )
+
+    return render(
+        request,
+        "donations/bank_transfer.html",
+        {
+            "bank": bank,
+            "donation": donation,
+            "form": form,
+            "show_form": show_form,
+            "confirmation_sent": confirmation_sent,
+            "page_title": "Virement bancaire",
+        },
+    )
+
+
+def donation_bank_transfer_confirm(request, pk):
+    """Raccourci : même page pré-associée au don."""
+    return donation_bank_transfer(request, pk=pk)
