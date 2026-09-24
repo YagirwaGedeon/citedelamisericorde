@@ -23,6 +23,36 @@
       <h2 class="font-display text-lg font-bold text-ink-900">Votre don</h2>
       <p class="mt-1 text-sm text-ink-500">Sélectionnez un montant rapide ou saisissez le vôtre.</p>
 
+      {# ---------- Option 1 : virement bancaire (vedette) ---------- #}
+      <a href="{% url 'donations:bank_transfer' %}"
+         class="group mt-5 flex items-start gap-4 rounded-2xl border-2 border-brand-500/50 bg-gradient-to-br from-brand-50 to-white p-4 shadow-soft transition hover:border-brand-600 hover:shadow-lift sm:p-5">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-600 to-brand-800 text-white shadow-lift">
+          {% icon "bank" size=24 %}
+        </span>
+        <span class="min-w-0 flex-1">
+          <span class="flex flex-wrap items-center gap-2">
+            <span class="badge badge-brand">Option 1 · Recommandé</span>
+            <span class="badge badge-accent">Sans frais en ligne</span>
+          </span>
+          <span class="mt-2 block font-display text-base font-extrabold text-ink-900">
+            Virement bancaire
+          </span>
+          <span class="mt-0.5 block text-sm text-ink-500">
+            EQUITY BANK SA · USD · SWIFT BCDCCDKI / CITIUS33 — coordonnées affichées + confirmation de virement.
+          </span>
+          <span class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand-700">
+            Voir les coordonnées
+            {% icon "arrow-right" size=16 class_name="transition group-hover:translate-x-0.5" %}
+          </span>
+        </span>
+      </a>
+
+      <div class="my-5 flex items-center gap-3" aria-hidden="true">
+        <span class="h-px flex-1 bg-ink-100"></span>
+        <span class="text-xs font-semibold uppercase tracking-wider text-ink-400">ou continuer en ligne</span>
+        <span class="h-px flex-1 bg-ink-100"></span>
+      </div>
+
       <div class="mt-5 grid grid-cols-4 gap-2" role="group" aria-label="Montants prédéfinis">
         {% for amount in preset_amounts %}
         <button type="button" data-amount="{{ amount }}" class="preset-btn btn btn-outline btn-sm">${{ amount }}</button>
@@ -120,6 +150,29 @@
     </div>
 
     <aside class="space-y-5">
+      <div class="card reveal border-2 border-brand-500/40 p-6">
+        <div class="flex items-center gap-3">
+          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-600 to-brand-800 text-white">{% icon "bank" size=22 %}</span>
+          <div class="text-sm">
+            <p class="badge badge-brand mb-1">Prioritaire</p>
+            <p class="font-semibold text-ink-900">Virement bancaire</p>
+            <p class="text-ink-500">National &amp; international — USD, SWIFT</p>
+          </div>
+        </div>
+        <ul class="mt-4 space-y-2 text-xs text-ink-600">
+          <li class="flex gap-2">{% icon "check" size=14 class_name="mt-0.5 text-brand-600" %} Compte EQUITY BANK SA affiché</li>
+          <li class="flex gap-2">{% icon "check" size=14 class_name="mt-0.5 text-brand-600" %} Boutons « Copier » sur chaque info</li>
+          <li class="flex gap-2">{% icon "check" size=14 class_name="mt-0.5 text-brand-600" %} Formulaire de confirmation + preuve</li>
+        </ul>
+        <a href="{% url 'donations:bank_transfer' %}" class="btn btn-primary btn-sm mt-4 w-full">
+          {% icon "landmark" size=16 %}
+          Ouvrir le virement bancaire
+        </a>
+        <a href="{% url 'donations:reception' %}" class="btn btn-ghost btn-sm mt-2 w-full">
+          Tous les modes de réception
+          {% icon "arrow-right" size=16 %}
+        </a>
+      </div>
       <div class="card reveal bg-brand-800 p-7 text-white">
         <h3 class="font-display text-base font-bold">Votre don, quel impact ?</h3>
         <ul class="mt-4 space-y-3 text-sm text-brand-100">
@@ -148,16 +201,13 @@
         <div class="flex items-center gap-3">
           <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ink-100 text-ink-600">{% icon "banknote" size=20 %}</span>
           <div class="text-sm">
-            <p class="font-semibold text-ink-900">Vous préférez donner autrement ?</p>
-            <p class="mt-0.5 text-ink-500">Virement bancaire, Western Union, MoneyGram, Ria, Chap Chap (Airtel), dons en nature ou depuis le Canada.</p>
+            <p class="font-semibold text-ink-900">Autres modes de réception</p>
+            <p class="mt-0.5 text-ink-500">Western Union, MoneyGram, Ria, Chap Chap (Airtel), dons en nature ou depuis le Canada.</p>
           </div>
         </div>
-        <a href="{% url 'donations:bank_transfer' %}" class="btn btn-outline btn-sm mt-4 w-full">
-          🏦 Virement bancaire
-        </a>
-        <a href="{% url 'donations:reception' %}" class="btn btn-ghost btn-sm mt-2 w-full">
-          Tous les modes de réception
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        <a href="{% url 'donations:reception' %}" class="btn btn-outline btn-sm mt-4 w-full">
+          Voir le système de réception
+          {% icon "arrow-right" size=16 %}
         </a>
       </div>
     </aside>

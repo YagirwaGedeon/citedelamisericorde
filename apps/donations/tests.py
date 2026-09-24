@@ -91,12 +91,29 @@ class BankTransferPageTests(TestCase):
         r = self.client.get(reverse("donations:checkout", args=[donation.pk]))
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, "Virement bancaire")
-        self.assertContains(r, reverse("donations:bank_transfer_donation", args=[donation.pk]))
+        bank_url = reverse("donations:bank_transfer_donation", args=[donation.pk])
+        self.assertContains(r, bank_url)
+        self.assertContains(r, "Recommandé")
+        body = r.content.decode()
+        # Le virement bancaire apparaît AVANT les autres moyens (Mobile Money…)
+        bank_pos = body.find(bank_url)
+        others_pos = body.find("Autres moyens de paiement")
+        self.assertGreater(bank_pos, -1)
+        self.assertGreater(others_pos, bank_pos)
+        # Icônes pro
+        self.assertContains(r, "Option 1")
+        self.assertContains(r, "Aucune donn")
+        self.assertContains(r, "Prioritaire")
 
     def test_create_page_offers_bank_link(self):
         r = self.client.get(reverse("donations:create"))
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, reverse("donations:bank_transfer"))
+        self.assertContains(r, "Option 1 · Recommandé")
+        body = r.content.decode()
+        # Vedette avant le formulaire « continuer en ligne »
+        self.assertGreater(body.find("donations:bank_transfer") if "donations:bank_transfer" in body else body.find(reverse("donations:bank_transfer")), body.find("Votre don"))
+        self.assertIn("ou continuer en ligne", body)
 
     def test_reception_page_links_bank_details(self):
         r = self.client.get(reverse("donations:reception"))
