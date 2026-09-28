@@ -15,6 +15,7 @@
     {% endif %}
     <form method="post" action="{% url 'adminpanel:message_toggle_read' item.pk %}">
       {% csrf_token %}
+      <input type="hidden" name="back" value="{{ back_qs }}">
       <button type="submit" class="btn btn-outline btn-sm">
         {% if item.is_read %}Marquer non lu{% else %}Marquer lu{% endif %}
       </button>

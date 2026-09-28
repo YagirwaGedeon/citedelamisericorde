@@ -896,7 +896,7 @@ def messages_list(request):
 def message_detail(request, pk):
     """Détail d'un message — marqué lu automatiquement à l'ouverture."""
     item = get_object_or_404(ContactMessage, pk=pk)
-    if not item.is_read and not item.is_spam:
+    if not item.is_read and not item.is_spam and not request.GET.get("toggled"):
         ContactMessage.objects.filter(pk=pk).update(is_read=True, read_at=timezone.now())
         item.refresh_from_db()
     back_qs = request.GET.get("back", "")
@@ -907,6 +907,7 @@ def message_detail(request, pk):
         {
             "item": item,
             "back_url": back_url,
+            "back_qs": back_qs,
             "page_title": "Message de contact",
             "active_section": "messages",
         },
@@ -926,4 +927,7 @@ def message_toggle_read(request, pk):
         f"Message de {item.full_name if hasattr(item, 'full_name') else item.name} "
         f"marqué « {'lu' if item.is_read else 'non lu'} ».",
     )
-    return redirect("adminpanel:message_detail", pk=pk)
+    target = reverse("adminpanel:message_detail", kwargs={"pk": pk}) + "?toggled=1"
+    if request.POST.get("back"):
+        target += "&" + urlencode({"back": request.POST["back"]})
+    return redirect(target)

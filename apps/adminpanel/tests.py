@@ -398,6 +398,30 @@ class AdminPanelTests(TestCase):
         self.assertFalse(msg.is_read)
         self.assertIsNone(msg.read_at)
 
+    def test_toggle_to_unread_survives_detail_redirect(self):
+        msg = self._make_message()
+        self.client.login(username="Manasse Kamole", password="Manasse2026")
+        self.client.get(f"/admin/messages/{msg.pk}/")
+        msg.refresh_from_db()
+        self.assertTrue(msg.is_read)
+        r = self.client.post(
+            f"/admin/messages/{msg.pk}/toggle-read/",
+            {"back": "status=unread"},
+            follow=True,
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("toggled=1", r.redirect_chain[0][0])
+        msg.refresh_from_db()
+        self.assertFalse(msg.is_read)
+        self.assertIsNone(msg.read_at)
+        # Le badge non lu est de retour
+        r = self.client.get("/admin/dashboard/")
+        self.assertContains(r, "1 non lu")
+        # Une ouverture normale re-mark lu
+        self.client.get(f"/admin/messages/{msg.pk}/")
+        msg.refresh_from_db()
+        self.assertTrue(msg.is_read)
+
     def test_messages_list_filters(self):
         self._make_message()
         self._make_message(name="Lu Exemple", email="lu@example.org", is_read=True)
