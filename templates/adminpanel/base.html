@@ -81,6 +81,15 @@
         <span class="nav-ic" aria-hidden="true">🏦</span>
         <span class="nav-label">Virements</span>
       </a>
+      <a href="{% url 'adminpanel:messages_list' %}"
+         class="nav-item {% if active_section == 'messages' %}is-active{% endif %}"
+         title="Messages de contact">
+        <span class="nav-ic" aria-hidden="true">✉️</span>
+        <span class="nav-label">Messages</span>
+        {% if unread_messages %}
+        <span class="nav-badge" aria-label="{{ unread_messages }} message(s) non lu(s)">{{ unread_messages }}</span>
+        {% endif %}
+      </a>
 
       <p class="sidebar-label sidebar-label-gap">Compte</p>
       <a href="{% url 'adminpanel:profile' %}"
@@ -339,6 +348,7 @@
     background: transparent;
     width: 100%;
     text-align: left;
+    position: relative;
   }
   .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
   .nav-item.is-active {
@@ -358,6 +368,20 @@
     line-height: 1;
   }
   .nav-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nav-badge {
+    margin-left: auto;
+    min-width: 1.25rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 9999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .admin-sidebar.is-collapsed .nav-badge { margin-left: 0; position: absolute; top: 0.25rem; right: 0.35rem; }
 
   .sidebar-footer {
     border-top: 1px solid rgba(255,255,255,0.08);

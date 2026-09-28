@@ -16,6 +16,7 @@ from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncDate
 from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST
 
@@ -126,7 +127,7 @@ def dashboard(request):
         {"label": "Projets", "value": Project.objects.count(), "hint": "au total", "icon": "📁"},
         {"label": "Actualités", "value": Article.objects.filter(status="published").count(), "hint": "publiées", "icon": "📰"},
         {"label": "Médias", "value": MediaItem.objects.count(), "hint": "fichiers", "icon": "🖼"},
-        {"label": "Messages non lus", "value": ContactMessage.objects.filter(is_read=False, is_spam=False).count(), "hint": "contact", "icon": "✉"},
+        {"label": "Messages non lus", "value": ContactMessage.objects.filter(is_read=False, is_spam=False).count(), "hint": "contact", "icon": "✉", "href": reverse("adminpanel:messages_list") + "?status=unread"},
         {"label": "Visiteurs aujourd'hui", "value": PageView.objects.filter(created_at__gte=today_start, is_bot=False).count(), "hint": "analytics", "icon": "👥"},
         {"label": "Lectures articles", "value": Article.objects.aggregate(t=Sum("views"))["t"] or 0, "hint": "cumul vues", "icon": "📖"},
         {"label": "Pages vues (30j)", "value": PageView.objects.filter(created_at__gte=today_start - timedelta(days=29), is_bot=False).count(), "hint": "trafic", "icon": "📈"},
@@ -842,3 +843,87 @@ def bank_transfer_proof(request, pk):
         )
     except (FileNotFoundError, ValueError):
         raise Http404
+
+
+# ---------------------------------------------------------------- Messages de contact
+@staff_login_required
+def messages_list(request):
+    """Liste des messages de contact — filtres statut / recherche / pagination."""
+    q = request.GET.get("q", "").strip()
+    status = request.GET.get("status", "").strip()
+    if status not in {"unread", "read", "spam"}:
+        status = ""
+
+    qs = ContactMessage.objects.all()
+    if status == "unread":
+        qs = qs.filter(is_read=False, is_spam=False)
+    elif status == "read":
+        qs = qs.filter(is_read=True, is_spam=False)
+    elif status == "spam":
+        qs = qs.filter(is_spam=True)
+    else:
+        qs = qs.filter(is_spam=False)
+    if q:
+        qs = qs.filter(Q(name__icontains=q) | Q(email__icontains=q) | Q(message__icontains=q))
+
+    page_obj = Paginator(qs, 15).get_page(request.GET.get("page"))
+    filter_params = {k: v for k, v in request.GET.items() if k != "page" and v}
+    filter_qs = urlencode(filter_params)
+
+    status_counts = {
+        "all": ContactMessage.objects.filter(is_spam=False).count(),
+        "unread": ContactMessage.objects.filter(is_read=False, is_spam=False).count(),
+        "read": ContactMessage.objects.filter(is_read=True, is_spam=False).count(),
+        "spam": ContactMessage.objects.filter(is_spam=True).count(),
+    }
+
+    return render(
+        request,
+        "adminpanel/messages_list.html",
+        {
+            "page_obj": page_obj,
+            "q": q,
+            "status": status,
+            "filter_qs": filter_qs,
+            "status_counts": status_counts,
+            "page_title": "Messages de contact",
+            "active_section": "messages",
+        },
+    )
+
+
+@staff_login_required
+def message_detail(request, pk):
+    """Détail d'un message — marqué lu automatiquement à l'ouverture."""
+    item = get_object_or_404(ContactMessage, pk=pk)
+    if not item.is_read and not item.is_spam:
+        ContactMessage.objects.filter(pk=pk).update(is_read=True, read_at=timezone.now())
+        item.refresh_from_db()
+    back_qs = request.GET.get("back", "")
+    back_url = reverse("adminpanel:messages_list") + (f"?{back_qs}" if back_qs else "")
+    return render(
+        request,
+        "adminpanel/message_detail.html",
+        {
+            "item": item,
+            "back_url": back_url,
+            "page_title": "Message de contact",
+            "active_section": "messages",
+        },
+    )
+
+
+@staff_login_required
+@require_POST
+def message_toggle_read(request, pk):
+    """Marquer un message lu / non lu manuellement."""
+    item = get_object_or_404(ContactMessage, pk=pk)
+    item.is_read = not item.is_read
+    item.read_at = timezone.now() if item.is_read else None
+    item.save(update_fields=["is_read", "read_at", "updated_at"])
+    messages.success(
+        request,
+        f"Message de {item.full_name if hasattr(item, 'full_name') else item.name} "
+        f"marqué « {'lu' if item.is_read else 'non lu'} ».",
+    )
+    return redirect("adminpanel:message_detail", pk=pk)

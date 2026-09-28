@@ -108,7 +108,11 @@
 {# ---------- KPI ---------- #}
 <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
   {% for kpi in kpis %}
+  {% if kpi.href %}
+  <a href="{{ kpi.href }}" class="admin-card block p-5 transition hover:border-brand-500 hover:shadow-lift">
+  {% else %}
   <div class="admin-card p-5">
+  {% endif %}
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
         <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">{{ kpi.label }}</p>
@@ -119,7 +123,11 @@
       <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-lg">{{ kpi.icon }}</span>
       {% endif %}
     </div>
+  {% if kpi.href %}
+  </a>
+  {% else %}
   </div>
+  {% endif %}
   {% endfor %}
 </div>
 
@@ -168,13 +176,20 @@
   <section class="admin-card overflow-hidden lg:col-span-1">
     <header class="flex items-center justify-between border-b border-ink-100 px-5 py-4">
       <h2 class="font-display text-sm font-bold text-ink-900">Messages de contact</h2>
-      <span class="badge badge-gray">{{ recent_messages|length }}</span>
+      <a href="{% url 'adminpanel:messages_list' %}" class="text-xs font-semibold text-brand-700 hover:underline">
+        Tout voir{% if unread_messages %} ({{ unread_messages }} non lu{{ unread_messages|pluralize }}){% endif %}
+      </a>
     </header>
     <ul class="divide-y divide-ink-100">
       {% for msg in recent_messages %}
-      <li class="px-5 py-3">
-        <p class="truncate text-sm font-medium text-ink-800">{{ msg.name }} — {{ msg.get_subject_display }}</p>
-        <p class="truncate text-xs text-ink-500">{{ msg.message|truncatechars:80 }}</p>
+      <li>
+        <a href="{% url 'adminpanel:message_detail' msg.pk %}" class="block px-5 py-3 transition hover:bg-ink-50">
+          <p class="flex items-center gap-2 truncate text-sm font-medium text-ink-800">
+            {% if not msg.is_read %}<span class="h-2 w-2 shrink-0 rounded-full bg-red-500"></span>{% endif %}
+            <span class="truncate">{{ msg.name }} — {{ msg.get_subject_display }}</span>
+          </p>
+          <p class="truncate text-xs text-ink-500">{{ msg.message|truncatechars:80 }}</p>
+        </a>
       </li>
       {% empty %}
       <li class="px-5 py-6 text-sm text-ink-500">Aucun message.</li>

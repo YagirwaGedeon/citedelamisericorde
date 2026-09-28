@@ -17,6 +17,10 @@ urlpatterns = [
     path("bank_transfers/<int:pk>/status/", views.bank_transfer_status, name="bank_transfer_status"),
     path("bank_transfers/<int:pk>/proof/", views.bank_transfer_proof, name="bank_transfer_proof"),
 
+    path("messages/", views.messages_list, name="messages_list"),
+    path("messages/<int:pk>/", views.message_detail, name="message_detail"),
+    path("messages/<int:pk>/toggle-read/", views.message_toggle_read, name="message_toggle_read"),
+
     path("home/", views.home_list, name="home_list"),
     path("home/create/", views.home_create, name="home_create"),
     path("home/<int:pk>/edit/", views.home_edit, name="home_edit"),

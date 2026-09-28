@@ -1,0 +1,75 @@
+{% extends "adminpanel/base.html" %}
+
+{% block content %}
+<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+  <div class="flex flex-wrap gap-2">
+    <a href="{% url 'adminpanel:messages_list' %}" class="badge {% if not status %}badge-brand{% else %}badge-gray{% endif %}">Tous : {{ status_counts.all }}</a>
+    <a href="{% url 'adminpanel:messages_list' %}?status=unread" class="badge {% if status == 'unread' %}badge-red{% else %}badge-gray{% endif %}">Non lus : {{ status_counts.unread }}</a>
+    <a href="{% url 'adminpanel:messages_list' %}?status=read" class="badge {% if status == 'read' %}badge-green{% else %}badge-gray{% endif %}">Lus : {{ status_counts.read }}</a>
+    <a href="{% url 'adminpanel:messages_list' %}?status=spam" class="badge {% if status == 'spam' %}badge-amber{% else %}badge-gray{% endif %}">Spam : {{ status_counts.spam }}</a>
+  </div>
+</div>
+
+<form method="get" class="admin-card mb-5 p-4">
+  {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+  <div class="flex flex-wrap items-end gap-3">
+    <div class="min-w-[220px] flex-1">
+      <label for="msg-q" class="label">Recherche</label>
+      <input type="search" id="msg-q" name="q" value="{{ q }}" placeholder="Nom, email, contenu du message…" class="input">
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm">Rechercher</button>
+    <a href="{% url 'adminpanel:messages_list' %}" class="btn btn-ghost btn-sm">Réinitialiser</a>
+  </div>
+</form>
+
+<div class="admin-card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Expéditeur</th>
+          <th>Sujet</th>
+          <th>Message</th>
+          <th>Reçu le</th>
+          <th>État</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in page_obj %}
+        <tr {% if not item.is_read and not item.is_spam %}class="bg-brand-50/40"{% endif %}>
+          <td>
+            <p class="font-medium text-ink-900">{{ item.name }}</p>
+            <p class="text-xs text-ink-500">{{ item.email }}</p>
+            {% if item.phone %}<p class="text-[11px] text-ink-400">{{ item.phone }}</p>{% endif %}
+          </td>
+          <td class="text-sm">{{ item.get_subject_display }}</td>
+          <td class="max-w-[320px]">
+            <p class="truncate text-sm text-ink-600" title="{{ item.message }}">{{ item.message|truncatechars:110 }}</p>
+          </td>
+          <td class="whitespace-nowrap text-sm">{{ item.created_at|date:"d/m/Y H:i" }}</td>
+          <td>
+            {% if item.is_spam %}
+              <span class="badge badge-amber">Spam</span>
+            {% elif item.is_read %}
+              <span class="badge badge-green">Lu</span>
+              {% if item.read_at %}<p class="mt-0.5 text-[11px] text-ink-400">{{ item.read_at|date:"d/m/Y H:i" }}</p>{% endif %}
+            {% else %}
+              <span class="badge badge-red">Non lu</span>
+            {% endif %}
+          </td>
+          <td class="whitespace-nowrap text-right">
+            <a href="{% url 'adminpanel:message_detail' item.pk %}{% if filter_qs %}?back={{ filter_qs|urlencode }}{% endif %}"
+               class="btn btn-outline btn-sm">Lire</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="py-10 text-center text-ink-500">Aucun message ne correspond à ces filtres.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% include "adminpanel/partials/pagination.html" with filter_qs=filter_qs %}
+{% endblock %}

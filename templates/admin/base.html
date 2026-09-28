@@ -88,9 +88,9 @@
       {% endblock %}
     </div>
     <div class="adm-topbar-actions">
-      <a href="{% url 'admin:contact_contactmessage_changelist' %}" class="adm-icon-btn adm-notif" aria-label="Messages reçus">
+      <a href="{% url 'admin:contact_contactmessage_changelist' %}?is_read__exact=0" class="adm-icon-btn adm-notif" aria-label="Messages non lus">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="adm-ic"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-        {% if dashboard.unread_messages %}<span class="adm-notif-dot">{{ dashboard.unread_messages }}</span>{% endif %}
+        {% if unread_messages %}<span class="adm-notif-dot">{{ unread_messages }}</span>{% endif %}
       </a>
       <div class="adm-profile">
         <span class="adm-avatar">{{ user.get_short_name|default:user.get_username|first|upper }}</span>

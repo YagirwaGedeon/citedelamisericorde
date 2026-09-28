@@ -91,6 +91,13 @@ class MisericordeAdminSite(admin.AdminSite):
         extra_context.update(self.dashboard_data())
         return super().index(request, extra_context=extra_context)
 
+    def each_context(self, request):
+        context = super().each_context(request)
+        context["unread_messages"] = (
+            ContactMessage.objects.filter(is_read=False, is_spam=False).count()
+        )
+        return context
+
     @staticmethod
     def dashboard_data() -> dict:
         now = timezone.now()
@@ -164,7 +171,7 @@ class MisericordeAdminSite(admin.AdminSite):
         def _recent_messages():
             rows = []
             for m in ContactMessage.objects.order_by("-created_at")[:6]:
-                rows.append({"name": m.name, "email": m.email, "subject": m.subject, "created_at": m.created_at, "is_read": m.is_read})
+                rows.append({"id": m.pk, "name": m.name, "email": m.email, "subject": m.subject, "created_at": m.created_at, "is_read": m.is_read})
             return rows
 
         def _recent_articles():

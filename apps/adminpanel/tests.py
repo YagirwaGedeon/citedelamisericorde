@@ -43,6 +43,8 @@ class AdminPanelTests(TestCase):
             "/admin/settings/",
             "/admin/analytics/",
             "/admin/bank_transfers/",
+            "/admin/messages/",
+            "/admin/messages/1/",
         ):
             r = self.client.get(path)
             self.assertEqual(r.status_code, 302, path)
@@ -337,3 +339,95 @@ class AdminPanelTests(TestCase):
         r = self.client.get(f"/admin/bank_transfers/{item.pk}/proof/")
         self.assertEqual(r.status_code, 200)
         self.assertIn("attachment", r.get("Content-Disposition", ""))
+
+    def _make_message(self, **overrides):
+        from apps.contact.models import ContactMessage
+
+        data = {
+            "name": "Visiteur Test",
+            "email": "visiteur@example.org",
+            "subject": "general",
+            "message": "Bonjour, j'aimerais des informations sur vos projets.",
+        }
+        data.update(overrides)
+        return ContactMessage.objects.create(**data)
+
+    def test_messages_list_and_sidebar_badge(self):
+        msg = self._make_message()
+        self.client.login(username="Manasse Kamole", password="Manasse2026")
+        r = self.client.get("/admin/messages/")
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "Messages de contact")
+        self.assertContains(r, "Visiteur Test")
+        self.assertContains(r, "Non lus : 1")
+        self.assertContains(r, 'class="nav-item is-active"')
+        # Badge sidebar sur le dashboard
+        r = self.client.get("/admin/dashboard/")
+        self.assertContains(r, "Messages")
+        # KPI cliquable vers la liste filtrée
+        self.assertContains(r, "/admin/messages/?status=unread")
+
+    def test_message_detail_marks_read_and_badge_decrements(self):
+        msg = self._make_message()
+        self.client.login(username="Manasse Kamole", password="Manasse2026")
+        # Avant lecture : badge = 1
+        r = self.client.get("/admin/dashboard/")
+        self.assertContains(r, "1 non lu")
+        # Ouverture du détail → marqué lu automatiquement
+        r = self.client.get(f"/admin/messages/{msg.pk}/")
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "Visiteur Test")
+        self.assertContains(r, "aimerais des informations")
+        msg.refresh_from_db()
+        self.assertTrue(msg.is_read)
+        self.assertIsNotNone(msg.read_at)
+        # Après lecture : plus de badge non lu
+        r = self.client.get("/admin/dashboard/")
+        self.assertNotContains(r, "1 non lu")
+
+    def test_message_toggle_read(self):
+        msg = self._make_message()
+        self.client.login(username="Manasse Kamole", password="Manasse2026")
+        r = self.client.post(f"/admin/messages/{msg.pk}/toggle-read/")
+        self.assertEqual(r.status_code, 302)
+        msg.refresh_from_db()
+        self.assertTrue(msg.is_read)
+        r = self.client.post(f"/admin/messages/{msg.pk}/toggle-read/")
+        self.assertEqual(r.status_code, 302)
+        msg.refresh_from_db()
+        self.assertFalse(msg.is_read)
+        self.assertIsNone(msg.read_at)
+
+    def test_messages_list_filters(self):
+        self._make_message()
+        self._make_message(name="Lu Exemple", email="lu@example.org", is_read=True)
+        self._make_message(name="Spam Exemple", email="spam@example.org", is_spam=True)
+        self.client.login(username="Manasse Kamole", password="Manasse2026")
+        r = self.client.get("/admin/messages/?status=unread")
+        self.assertContains(r, "Visiteur Test")
+        self.assertNotContains(r, "Lu Exemple")
+        r = self.client.get("/admin/messages/?status=spam")
+        self.assertContains(r, "Spam Exemple")
+        r = self.client.get("/admin/messages/?status=read")
+        self.assertContains(r, "Lu Exemple")
+
+    def test_dashboard_messages_items_are_links(self):
+        msg = self._make_message()
+        self.client.login(username="Manasse Kamole", password="Manasse2026")
+        r = self.client.get("/admin/dashboard/")
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, f'/admin/messages/{msg.pk}/')
+
+    def test_django_admin_badge_on_all_pages(self):
+        from apps.contact.models import ContactMessage
+
+        ContactMessage.objects.create(
+            name="Badge Test", email="badge@example.org",
+            subject="donation", message="Message badge.",
+        )
+        self.client.login(username="Manasse Kamole", password="Manasse2026")
+        for path in ("/django-admin/", "/django-admin/contact/contactmessage/"):
+            r = self.client.get(path)
+            self.assertEqual(r.status_code, 200, path)
+            self.assertContains(r, "adm-notif-dot", msg_prefix=path)
+            self.assertContains(r, "is_read__exact=0", msg_prefix=path)
